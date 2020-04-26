@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ASCII"?><project>
+	<version>1.0</version>
+	<description>Final Group Assignment for ENV717 - Capacity Planning</description>
+	<configs>
+		<config default="true" name="Capacity Planning" category="opl">
+			<ref name="717A11_mod.mod" type="model">
+			</ref>
+			<ref name="717A11_oplsettings.ops" type="setting">
+			</ref>
+			<ref name="717A11_data.dat" type="data">
+			</ref>
+		</config>
+		<config default="false" name="Business as Usual" category="opl">
+		</config>
+	</configs>
+	
+</project>
