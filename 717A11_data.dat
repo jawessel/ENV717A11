@@ -29,3 +29,4 @@ MarginalC from SheetRead(sheet, "MarginalC"); //= [7.5 6 14 10]; /*unit marginal
 SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
 Flow to SheetWrite(sheetResults,"LineFlow");
 Gen to SheetWrite(sheetResults,"Gen");
+objective to SheetWrite(sheetResults,"TotalCost");

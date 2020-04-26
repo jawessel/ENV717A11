@@ -33,6 +33,8 @@ float MarginalC[Units] = ...; //Unit Marginal Cost of Energy ($/MWh)
 //Decision Variables
 dvar float+ Gen [u in Units, y in Years] in 0..MaxGen [u]; //Generation for each Unit (MW)
 dvar float Flow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
+dvar boolean on[u in Units, y in Years];
+dvar float objective;
 
 //Objective Function
 minimize 
@@ -41,6 +43,11 @@ minimize
 
 //Constraints
 subject to {
+  
+//Assign obj function value to variable
+	Objective:
+	objective == sum(u in Units) sum(y in Years) Gen[u][y] * MarginalC[u];
+  
 //Meet demand       
    TotalPowerBalance:
     forall(y in Years) 
@@ -73,14 +80,14 @@ subject to {
 	{
     	forall(u in Units)
       	  MaxGeneration:
-    	    Gen[u,y] <= MaxGen[u];
+    	    Gen[u,y] <= MaxGen[u]*on[u,y];
     }
     
     forall(y in Years)
     {    
     	forall(u in Units)
       	  MinGeneration:
-    	    Gen[u,y] >= MinGen[u];
+    	    Gen[u,y] >= MinGen[u]*on[u,y];
     }    	    	
 
 //Transmission Lines
