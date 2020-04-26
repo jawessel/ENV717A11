@@ -6,14 +6,15 @@
 
  //Simulate NicISO Power System to calculate LMPs, diagnose system deficiencies, and offer direction for system improvements.
 
-SheetConnection sheet("EconomicDispatch1Period.xlsx");	//Opens the spreadsheet with the data to be read
+SheetConnection sheet("717A11_data_in.xlsx");	//Opens the spreadsheet with the data to be read
 //All the names in "" are NamedRanges in Excel
 
 NumBuses from SheetRead(sheet, "NumBuses"); //=3
 NumLines from SheetRead(sheet, "NumLines"); //= 3;
-NumUnits from SheetRead(sheet, "NumUnits"); //= 4;
+NumUnits from SheetRead(sheet, "NumUnits"); //= 20;
+NumYears from SheetRead(sheet, "NumYears"); //= 26 (2020-2045);
 
-Demand from SheetRead(sheet, "BusDemand"); //= 4;= [50 60 300]; /*Demand (MW)*/
+Demand from SheetRead(sheet, "BusDemand"); /*Demand (MW)*/
 LineToBus from SheetRead(sheet, "LinetoBus"); //= 4;= [[0 0 1] [1 0 0] [0 1 0]]; //[b,l]=1 if line L does to bus b, 0 otherwise
 LineFromBus from SheetRead(sheet, "LineFromBus"); //= 4;= [[1 0 0] [0 1 0] [0 0 1]]; //[b,l]=1 if line L departs from bus b, 0 otherwise
 UnitsByBus from SheetRead(sheet, "UnitsByBus"); //= 4;=[[1 1 0 0] [0 0 1 0] [0 0 0 1]]; //[b,u]=1 if generator u is located at bus b, 0 otherwise
@@ -25,6 +26,6 @@ MaxGen from SheetRead(sheet, "MaxGen"); //= [140 285 90 85]; /*Unit maximum gene
 MinGen from SheetRead(sheet, "MinGen"); //= [0 0 0 0]; /*Unit minimum generation (MW)*/
 MarginalC from SheetRead(sheet, "MarginalC"); //= [7.5 6 14 10]; /*unit marginal costs of energy ($/MWh)*/
 
-SheetConnection sheetResults("EconomicDispatch1PeriodResults.xlsx"); //Opens or creates a spreadshet to write results
+SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
 Flow to SheetWrite(sheetResults,"LineFlow");
 Gen to SheetWrite(sheetResults,"Gen");
