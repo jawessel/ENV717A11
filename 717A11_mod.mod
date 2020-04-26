@@ -36,7 +36,7 @@ dvar float Flow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //
 
 //Objective Function
 minimize 
-  sum(u in Units, y in Years) Gen[y][u] * MarginalC[u];   //Minimize Energy Costs
+  sum(u in Units) sum(y in Years) Gen[u][y] * MarginalC[u];   //Minimize Energy Costs
   
 
 //Constraints
