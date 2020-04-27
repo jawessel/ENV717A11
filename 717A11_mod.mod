@@ -44,6 +44,8 @@ float wind_inc = ...; //Incremental amount of wind that can be built (MW)
 float solar_cap_factor = ...; //How much of the installed solar capacity will be generated at this hour in the year
 float wind_cap_factor = ...; //How much of the installed wind capacity will be generated at this hour in the year
 
+float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
+
 //Optimization Parameters
 float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
@@ -64,6 +66,8 @@ dvar int solar_additions [y in Years]; //number of solar modules that will be bu
 dvar boolean build_wind [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int wind_additions [y in Years]; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
 
+dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
+
 //Objective Function
 minimize 
   sum(y in Years) objective[y];   //Minimize Energy Costs
@@ -77,7 +81,7 @@ subject to {
 	{	//Total cost is calculated here
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
 	    	+ (capex_solar * build_solar[y]) + ((sum(z in Years : z<=y) solar_additions[z]) * solar_inc * opex_solar)
-	    		+ (capex_wind * build_wind[y]) + ((sum(z in Years : z<=y) wind_additions[z]) * wind_inc * opex_wind));
+	    		+ (capex_wind * build_wind[y]) + ((sum(z in Years : z<=y) wind_additions[z]) * wind_inc * opex_wind))+(EV_subsidy_cost*EV_subsidy_decision);
 	    		
 		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
 		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
@@ -164,5 +168,7 @@ subject to {
 	{
 		CO2_emissions:
 	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
+	  	  
+	  	  //CO2_total[26] == 0; //uncomment for carbon-free electricity
     }	  	 
 }  
