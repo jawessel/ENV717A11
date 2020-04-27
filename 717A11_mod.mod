@@ -34,7 +34,19 @@ float SO2 [Units] = ...; //SO2 Emissions by generator (lb/MWh)
 float CO2 [Units] = ...; //CO2 Emissions by generator (lb/MWh)
 float CH4 [Units] = ...; //CH4 Emissions by generator (lb/MWh)
 float N2O [Units] = ...; //N2O Emissions by generator (lb/MWh)
+
+float capex_solar = ...; //Capital Cost of a solar project ($)
+float opex_solar = ...; //Annual O&M Cost of new solar ($/MW)
+float capex_wind = ...; //Capital Cost of a wind project ($)
+float opex_wind = ...; //Annual O&M Cost of new wind ($/MW)
+float solar_inc = ...; //Incremental amount of solar that can be built (MW)
+float wind_inc = ...; //Incremental amount of wind that can be built (MW)
+float solar_cap_factor = ...; //How much of the installed solar capacity will be generated at this hour in the year
+float wind_cap_factor = ...; //How much of the installed wind capacity will be generated at this hour in the year
+
+//Optimization Parameters
 float DiscRate = ...; //Discount Rate for NPV calculations
+float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
 dvar float+ Gen [u in Units, y in Years] in 0..MaxGen [u]; //Generation for each Unit (MW)
@@ -47,6 +59,11 @@ dvar float CO2_total [y in Years];
 dvar float CH4_total [y in Years];
 dvar float N2O_total [y in Years];
 
+dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
+dvar int solar_additions [y in Years]; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
+dvar boolean build_wind [y in Years]; //binary decision for whether or not to build solar in a given year
+dvar int wind_additions [y in Years]; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
+
 //Objective Function
 minimize 
   sum(y in Years) objective[y];   //Minimize Energy Costs
@@ -58,7 +75,9 @@ subject to {
 	Objective:
 	forall(y in Years)
 	{
-	    objective[y] == (1/((1+DiscRate)^y))*(sum(u in Units) Gen[u][y] * MarginalC[u]);
+	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
+	    	+ (capex_solar * build_solar[y]) + ((sum(z in Years : z<=y) solar_additions[z]) * solar_inc * opex_solar)
+	    		+ (capex_wind * build_wind[y]) + ((sum(z in Years : z<=y) wind_additions[z]) * wind_inc * opex_wind));
 		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
 		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
 		CO2_total[y] == sum(u in Units) Gen[u][y] * CO2[u];
@@ -122,5 +141,27 @@ subject to {
 	  	  MaxCounterFlow:
 	  		Flow[l,y] >= -LineCapacity[l];
     }
-    	  			
+    
+//New Renewables Constraints 
+	forall(y in Years)
+	{   
+    	MaxSolarGen: //constrains new solar generation to be less than the total installed capacity up to that point
+    	  Gen[41][y] <= sum(z in Years : z<=y) solar_additions[z] * solar_inc * solar_cap_factor;
+    	  solar_additions[y] >= 0;
+	}
+	
+	forall(y in Years)
+	{
+	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
+	  	  Gen[42][y] <= sum(z in Years : z<=y) wind_additions[z] * wind_inc * wind_cap_factor;
+	  	  wind_additions[y] >= 0;
+	}    
+    
+
+//Emissions
+	forall(y in Years: y>1)
+	{
+		CO2_emissions:
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
+    }	  	 
 }  
