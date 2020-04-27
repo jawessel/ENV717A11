@@ -78,6 +78,7 @@ subject to {
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
 	    	+ (capex_solar * build_solar[y]) + ((sum(z in Years : z<=y) solar_additions[z]) * solar_inc * opex_solar)
 	    		+ (capex_wind * build_wind[y]) + ((sum(z in Years : z<=y) wind_additions[z]) * wind_inc * opex_wind));
+	    		
 		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
 		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
 		CO2_total[y] == sum(u in Units) Gen[u][y] * CO2[u];
