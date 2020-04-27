@@ -34,33 +34,37 @@ float SO2 [Units] = ...; //SO2 Emissions by generator (lb/MWh)
 float CO2 [Units] = ...; //CO2 Emissions by generator (lb/MWh)
 float CH4 [Units] = ...; //CH4 Emissions by generator (lb/MWh)
 float N2O [Units] = ...; //N2O Emissions by generator (lb/MWh)
+float DiscRate = ...; //Discount Rate for NPV calculations
 
 //Decision Variables
 dvar float+ Gen [u in Units, y in Years] in 0..MaxGen [u]; //Generation for each Unit (MW)
 dvar float Flow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar boolean on[u in Units, y in Years];
-dvar float objective;
-dvar float NOx_total;
-dvar float SO2_total;
-dvar float CO2_total;
-dvar float CH4_total;
-dvar float N2O_total;
+dvar float objective [y in Years];
+dvar float NOx_total [y in Years];
+dvar float SO2_total [y in Years];
+dvar float CO2_total [y in Years];
+dvar float CH4_total [y in Years];
+dvar float N2O_total [y in Years];
 
 //Objective Function
 minimize 
-  sum(u in Units) sum(y in Years) Gen[u][y] * MarginalC[u];   //Minimize Energy Costs
+  sum(y in Years) objective[y];   //Minimize Energy Costs
 
 //Constraints
 subject to {
   
 //Assign obj function and emissions values to variables
 	Objective:
-	objective == sum(u in Units) sum(y in Years) Gen[u][y] * MarginalC[u];
-	NOx_total == sum(u in Units) sum(y in Years) Gen[u][y] * NOx[u];
-	SO2_total == sum(u in Units) sum(y in Years) Gen[u][y] * SO2[u];
-	CO2_total == sum(u in Units) sum(y in Years) Gen[u][y] * CO2[u];
-	CH4_total == sum(u in Units) sum(y in Years) Gen[u][y] * CH4[u];
-	N2O_total == sum(u in Units) sum(y in Years) Gen[u][y] * N2O[u];
+	forall(y in Years)
+	{
+	    objective[y] == (1/((1+DiscRate)^y))*(sum(u in Units) Gen[u][y] * MarginalC[u]);
+		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
+		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
+		CO2_total[y] == sum(u in Units) Gen[u][y] * CO2[u];
+		CH4_total[y] == sum(u in Units) Gen[u][y] * CH4[u];
+		N2O_total[y] == sum(u in Units) Gen[u][y] * N2O[u];
+	}		
   
 //Meet demand       
    TotalPowerBalance:

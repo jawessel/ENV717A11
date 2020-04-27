@@ -31,6 +31,7 @@ SO2 from SheetRead(sheet, "SO2_rate");
 CO2 from SheetRead(sheet, "CO2_rate");
 CH4 from SheetRead(sheet, "CH4_rate");
 N2O from SheetRead(sheet, "N2O_rate");
+DiscRate from SheetRead(sheet, "DiscRate");
 
 SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
 Flow to SheetWrite(sheetResults,"LineFlow");
