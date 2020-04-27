@@ -74,7 +74,7 @@ subject to {
 //Assign obj function and emissions values to variables
 	Objective:
 	forall(y in Years)
-	{
+	{	//Total cost is calculated here
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
 	    	+ (capex_solar * build_solar[y]) + ((sum(z in Years : z<=y) solar_additions[z]) * solar_inc * opex_solar)
 	    		+ (capex_wind * build_wind[y]) + ((sum(z in Years : z<=y) wind_additions[z]) * wind_inc * opex_wind));
@@ -147,14 +147,14 @@ subject to {
 	forall(y in Years)
 	{   
     	MaxSolarGen: //constrains new solar generation to be less than the total installed capacity up to that point
-    	  Gen[41][y] <= sum(z in Years : z<=y) solar_additions[z] * solar_inc * solar_cap_factor;
+    	  Gen[41][y] <= (sum(z in Years : z<=y) solar_additions[z]) * solar_inc * solar_cap_factor;
     	  solar_additions[y] >= 0;
 	}
 	
 	forall(y in Years)
 	{
 	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
-	  	  Gen[42][y] <= sum(z in Years : z<=y) wind_additions[z] * wind_inc * wind_cap_factor;
+	  	  Gen[42][y] <= (sum(z in Years : z<=y) wind_additions[z]) * wind_inc * wind_cap_factor;
 	  	  wind_additions[y] >= 0;
 	}    
     
