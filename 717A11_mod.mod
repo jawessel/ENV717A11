@@ -84,8 +84,8 @@ subject to {
 	forall(y in Years)
 	{	//Total cost is calculated here
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
-	    	+ (capex_solar * build_solar[y]) + (new_solar_cap[y] * opex_solar)
-	    		+ (capex_wind * build_wind[y]) + (new_wind_cap[y] * opex_wind))
+	    	+ (capex_solar * solar_additions[y]) + (new_solar_cap[y] * opex_solar)
+	    		+ (capex_wind * wind_additions[y]) + (new_wind_cap[y] * opex_wind))
 	    			+ (EV_subsidy_cost*EV_subsidy_decision);
     }	   
     
