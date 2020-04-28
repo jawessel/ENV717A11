@@ -54,8 +54,8 @@ float maxCO2 = ...; //Maximum 2045 CO2 emissions
 dvar float+ Gen [u in Units, y in Years] in 0..MaxGen [u]; //Generation for each Unit (MW)
 dvar float Flow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar boolean on[u in Units, y in Years];
-dvar float objective [y in Years];
-dvar float NOx_total [y in Years];
+dvar float objective [y in Years]; //objective function set as a decision variable
+dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
 dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
 dvar float CH4_total [y in Years];

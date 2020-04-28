@@ -49,8 +49,8 @@ maxCO2 from SheetRead(sheet, "maxCO2");
 SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
 Flow to SheetWrite(sheetResults,"LineFlow");
 Gen to SheetWrite(sheetResults,"Gen");
-objective to SheetWrite(sheetResults,"TotalCost");
-NOx_total to SheetWrite(sheetResults,"NOx_total");
+objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
+NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
 SO2_total to SheetWrite(sheetResults,"SO2_total");
 CO2_total to SheetWrite(sheetResults,"CO2_total");
 CH4_total to SheetWrite(sheetResults,"CH4_total");
