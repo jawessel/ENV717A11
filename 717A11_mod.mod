@@ -16,7 +16,10 @@ range Units = 1..NumUnits;
 range Years = 1..NumYears;
 
 //Demand (Load)
-float Demand [Buses][Years] = ...; //Demand (MW) for each bus
+float PeakDemand [Buses][Years] = ...; //Demand (MW) for each bus
+float OffDemand [Buses][Years] = ...;
+float PeakHours = ...;
+float OffHours = ...;
 int LineToBus [Buses][Lines]=...; //Define lines by their start and end points
 int LineFromBus [Buses][Lines]=...;
 int UnitsByBus [Buses][Units]=...; //Number of generating units in each bus
@@ -26,7 +29,8 @@ float LineReactance[Lines]=...;
 float LineCapacity[Lines]=...;
 
 //Generator Parameters
-float MaxGen [Units] = ...; //Unit Maximum Generation (MW)
+float PeakMaxGen [Units] = ...; //Unit Maximum Generation during peak hours (MW)
+float OffMaxGen [Units] = ...; //Unit Maximum Generation during off-peak hours (MW)
 float MinGen [Units] = ...; //Unit Minimum Generation (MW)
 float MarginalC[Units] = ...; //Unit Marginal Cost of Energy ($/MWh)
 float NOx [Units] = ...; //NOx Emissions by generator (lb/MWh)
@@ -51,9 +55,13 @@ float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
-dvar float+ Gen [u in Units, y in Years] in 0..MaxGen [u]; //Generation for each Unit (MW)
-dvar float Flow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
-dvar boolean on[u in Units, y in Years];
+dvar float+ PeakGen [u in Units, y in Years] in 0..PeakMaxGen[u]; //Peak Generation for each Unit (MW)
+//Need to change the minimum of PeakGen to allow batteries to charge
+dvar float+ OffGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float PeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
+dvar float OffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
+dvar boolean Peakon[u in Units, y in Years];
+dvar boolean Offon[u in Units, y in Years];
 dvar float objective [y in Years]; //objective function set as a decision variable
 dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
 dvar float SO2_total [y in Years];
@@ -83,7 +91,8 @@ subject to {
 	Objective:
 	forall(y in Years)
 	{	//Total cost is calculated here
-	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
+	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) PeakGen[u][y] * MarginalC[u] * PeakHours)
+	    	+ (sum(u in Units) OffGen[u][y] * MarginalC[u] * OffHours)
 	    	+ (capex_solar * solar_additions[y]) + (new_solar_cap[y] * opex_solar)
 	    		+ (capex_wind * wind_additions[y]) + (new_wind_cap[y] * opex_wind))
 	    			+ (EV_subsidy_cost*EV_subsidy_decision);
@@ -91,18 +100,19 @@ subject to {
     
     forall(y in Years) //Emissions are summed up for output file
     { 		
-		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
-		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
-		CO2_total[y] == sum(u in Units) Gen[u][y] * CO2[u];
-		CH4_total[y] == sum(u in Units) Gen[u][y] * CH4[u];
-		N2O_total[y] == sum(u in Units) Gen[u][y] * N2O[u];
+		NOx_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours + OffGen[u][y] * OffHours) * NOx[u];
+		SO2_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours + OffGen[u][y] * OffHours) * SO2[u];
+		CO2_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours + OffGen[u][y] * OffHours) * CO2[u];
+		CH4_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours + OffGen[u][y] * OffHours) * CH4[u];
+		N2O_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours + OffGen[u][y] * OffHours) * N2O[u];
 	}		
   
 //Meet demand       
    TotalPowerBalance:
     forall(y in Years) 
     { 
-        sum(u in Units) Gen[u][y] == sum(b in Buses) Demand[b][y];
+        sum(u in Units) PeakGen[u][y] == sum(b in Buses) PeakDemand[b][y];
+        sum(u in Units) OffGen[u][y] == sum(b in Buses) OffDemand[b][y];
     };		 	  	    
       
    BusPowerBalance:
@@ -111,10 +121,17 @@ subject to {
     	forall(b in Buses) 
     	{
     	  
-    	  sum(l in Lines) LineToBus[b][l]*Flow[l,y] 
-      	  - sum(l in Lines) LineFromBus[b][l]*Flow[l,y] 
-      	  +sum(u in Units) UnitsByBus[b][u]*Gen[u,y] 
-      	  - Demand[b,y] >= 0;
+    	  //Peak
+    	  sum(l in Lines) LineToBus[b][l]*PeakFlow[l,y] 
+      	  - sum(l in Lines) LineFromBus[b][l]*PeakFlow[l,y] 
+      	  +sum(u in Units) UnitsByBus[b][u]*PeakGen[u,y] 
+      	  - PeakDemand[b,y] >= 0;
+      	  
+      	  //Off Peak
+      	  sum(l in Lines) LineToBus[b][l]*OffFlow[l,y] 
+      	  - sum(l in Lines) LineFromBus[b][l]*OffFlow[l,y] 
+      	  +sum(u in Units) UnitsByBus[b][u]*OffGen[u,y] 
+      	  - OffDemand[b,y] >= 0;
     	};
     };        	
     	
@@ -122,37 +139,54 @@ subject to {
 	KVLAroundTheLoop:
 	 forall(y in Years)
 	 {
-		 sum(l in Lines)	LineReactance[l]*Flow[l,y] == 0;
+		 sum(l in Lines)	LineReactance[l]*PeakFlow[l,y] == 0;
+		 sum(l in Lines)	LineReactance[l]*OffFlow[l,y] == 0;
      };		 
             
 //Max/Min Unit Constraints   
 	forall(y in Years)
 	{
     	forall(u in Units)
-      	  MaxGeneration:
-    	    Gen[u,y] <= MaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
+      	  PeakMaxGeneration:
+    	    PeakGen[u,y] <= PeakMaxGen[u]*Peakon[u,y]; //multiplied by binary variable to ensure it's switched on
+    	
+    	forall(u in Units)    
+    	  OffMaxGeneration:
+    	    OffGen[u,y] <= OffMaxGen[u]*Offon[u,y]; //multiplied by binary variable to ensure it's switched on
     }
     
     forall(y in Years)
     {    
     	forall(u in Units)
-      	  MinGeneration:
-    	    Gen[u,y] >= MinGen[u]*on[u,y];
+      	  PeakMinGeneration:
+    	    PeakGen[u,y] >= MinGen[u]*Peakon[u,y];
+    	    
+    	forall(u in Units)
+      	  OffMinGeneration:
+    	    OffGen[u,y] >= MinGen[u]*Offon[u,y];
     }    	    	
 
 //Transmission Lines
 	forall(y in Years)
 	{
 		forall(l in Lines)
-	  	  MaxFlow:
-	  		Flow[l,y] <= LineCapacity[l];
+	  	  PeakMaxFlow:
+	  		PeakFlow[l,y] <= LineCapacity[l];
+	  		
+	  	forall(l in Lines)
+	  	  OffMaxFlow:	
+	  		OffFlow[l,y] <= LineCapacity[l];
     }	 
 	  	
 	forall(y in Years)
 	{  	
 		forall(l in Lines)
-	  	  MaxCounterFlow:
-	  		Flow[l,y] >= -LineCapacity[l];
+	  	  PeakMaxCounterFlow:
+	  		PeakFlow[l,y] >= -LineCapacity[l];
+	  		
+	  	forall(l in Lines)
+	  	  OffMaxCounterFlow:
+	  		OffFlow[l,y] >= -LineCapacity[l];
     }
     
 //New Renewables Constraints 
@@ -160,10 +194,11 @@ subject to {
 	{   
     	MaxSolarGen:
     	   //constrains new solar generation to be less than the total installed capacity up to that point
+    	   //solar only needs to consider PeakGen, all OffMaxGen set to 0
     	  new_solar_cap[y] == sum(z in Years : z<=y) bs_sa[z] * solar_inc;
     	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
     	  (build_solar[y] == 0) => (bs_sa[y] == 0);
-    	  Gen[41][y] <= new_solar_cap[y] * solar_cap_factor;
+    	  PeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor;
     	  solar_additions[y] >= 0;
     	  bs_sa[y] >= 0;
 	}
@@ -174,7 +209,8 @@ subject to {
 	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
     	  (build_wind[y] == 0) => (bw_wa[y] == 0);
-    	  Gen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  PeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  OffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  wind_additions[y] >= 0;
     	  bw_wa[y] >= 0;
 	}
@@ -191,7 +227,8 @@ subject to {
     //}	  
     
     EmissionsGoals:
-    	CO2_total[26] == 0; //uncomment for carbon-free electricity
+    	//CO2_total[26] == 0; //uncomment for carbon-free electricity
+    	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
-    	600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / Demand[b][y]; 
+    	600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours); 
 }  

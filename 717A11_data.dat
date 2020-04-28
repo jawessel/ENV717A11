@@ -14,7 +14,10 @@ NumLines from SheetRead(sheet, "NumLines"); //= 3;
 NumUnits from SheetRead(sheet, "NumUnits"); //= 20;
 NumYears from SheetRead(sheet, "NumYears"); //= 26 (2020-2045);
 
-Demand from SheetRead(sheet, "BusDemand"); /*Demand (MW)*/
+PeakDemand from SheetRead(sheet, "BusDemandPeak"); /*Demand (MW)*/
+OffDemand from SheetRead(sheet, "BusDemandOff"); /*Demand (MW)*/
+PeakHours from SheetRead(sheet, "PeakHours"); 
+OffHours from SheetRead(sheet, "OffHours");
 LineToBus from SheetRead(sheet, "LinetoBus"); //= 4;= [[0 0 1] [1 0 0] [0 1 0]]; //[b,l]=1 if line L does to bus b, 0 otherwise
 LineFromBus from SheetRead(sheet, "LineFromBus"); //= 4;= [[1 0 0] [0 1 0] [0 0 1]]; //[b,l]=1 if line L departs from bus b, 0 otherwise
 UnitsByBus from SheetRead(sheet, "UnitsByBus"); //= 4;=[[1 1 0 0] [0 0 1 0] [0 0 0 1]]; //[b,u]=1 if generator u is located at bus b, 0 otherwise
@@ -22,7 +25,8 @@ UnitsByBus from SheetRead(sheet, "UnitsByBus"); //= 4;=[[1 1 0 0] [0 0 1 0] [0 0
 LineReactance from SheetRead(sheet, "LineReactance"); //= [0.2 0.1 0.2];
 LineCapacity from SheetRead(sheet, "LineCapacity"); //= [126 130 250];
 
-MaxGen from SheetRead(sheet, "MaxGen"); //= [140 285 90 85]; /*Unit maximum generation (MW)*/
+PeakMaxGen from SheetRead(sheet, "MaxGenPeak"); //= [140 285 90 85]; /*Unit maximum generation (MW)*/
+OffMaxGen from SheetRead(sheet, "MaxGenOff");
 MinGen from SheetRead(sheet, "MinGen"); //= [0 0 0 0]; /*Unit minimum generation (MW)*/
 MarginalC from SheetRead(sheet, "MarginalC"); //= [7.5 6 14 10]; /*unit marginal costs of energy ($/MWh)*/
 
@@ -47,8 +51,10 @@ DiscRate from SheetRead(sheet, "DiscRate");
 maxCO2 from SheetRead(sheet, "maxCO2");
 
 SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
-Flow to SheetWrite(sheetResults,"LineFlow");
-Gen to SheetWrite(sheetResults,"Gen");
+PeakFlow to SheetWrite(sheetResults,"PeakLineFlow");
+OffFlow to SheetWrite(sheetResults,"OffLineFlow");
+PeakGen to SheetWrite(sheetResults,"PeakGen");
+PeakGen to SheetWrite(sheetResults,"OffGen");
 objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
 NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
 SO2_total to SheetWrite(sheetResults,"SO2_total");
