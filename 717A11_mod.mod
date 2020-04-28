@@ -183,11 +183,15 @@ subject to {
     
 
 //Emissions
-	forall(y in Years: y>1)
-	{
-		CO2_emissions:
-	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
+	//forall(y in Years: y>1)
+	//{
+		//CO2_emissions:
+	  	//  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
 	  	  
-	  	  //CO2_total[26] == 0; //uncomment for carbon-free electricity
-    }	  	 
+    //}	  
+    
+    EmissionsGoals:
+    	CO2_total[26] == 0; //uncomment for carbon-free electricity
+    	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
+    	600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / Demand[b][y]; 
 }  
