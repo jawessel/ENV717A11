@@ -122,7 +122,7 @@ subject to {
 	{
     	forall(u in Units)
       	  MaxGeneration:
-    	    Gen[u,y] <= MaxGen[u]*on[u,y];
+    	    Gen[u,y] <= MaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
     }
     
     forall(y in Years)
