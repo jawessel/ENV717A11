@@ -62,9 +62,13 @@ dvar float CH4_total [y in Years];
 dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
-dvar int solar_additions [y in Years]; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
+dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
 dvar boolean build_wind [y in Years]; //binary decision for whether or not to build solar in a given year
-dvar int wind_additions [y in Years]; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
+dvar int wind_additions [y in Years] in 0..10000; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
+dvar float new_solar_cap [y in Years];
+dvar float new_wind_cap [y in Years];
+dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints
+dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints
 
 dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 
@@ -82,7 +86,10 @@ subject to {
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
 	    	+ (capex_solar * build_solar[y]) + ((sum(z in Years : z<=y) solar_additions[z]) * solar_inc * opex_solar)
 	    		+ (capex_wind * build_wind[y]) + ((sum(z in Years : z<=y) wind_additions[z]) * wind_inc * opex_wind))+(EV_subsidy_cost*EV_subsidy_decision);
-	    		
+    }	   
+    
+    forall(y in Years) //Emissions are summed up for output file
+    { 		
 		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
 		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
 		CO2_total[y] == sum(u in Units) Gen[u][y] * CO2[u];
@@ -150,17 +157,28 @@ subject to {
 //New Renewables Constraints 
 	forall(y in Years)
 	{   
-    	MaxSolarGen: //constrains new solar generation to be less than the total installed capacity up to that point
-    	  Gen[41][y] <= (sum(z in Years : z<=y) solar_additions[z]) * solar_inc * solar_cap_factor;
+    	MaxSolarGen:
+    	   //constrains new solar generation to be less than the total installed capacity up to that point
+    	  new_solar_cap[y] == sum(z in Years : z<=y) bs_sa[z] * solar_inc;
+    	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
+    	  (build_solar[y] == 0) => (bs_sa[y] == 0);
+    	  Gen[41][y] <= new_solar_cap[y] * solar_cap_factor;
     	  solar_additions[y] >= 0;
+    	  bs_sa[y] >= 0;
 	}
 	
 	forall(y in Years)
 	{
 	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
-	  	  Gen[42][y] <= (sum(z in Years : z<=y) wind_additions[z]) * wind_inc * wind_cap_factor;
-	  	  wind_additions[y] >= 0;
-	}    
+	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
+    	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
+    	  (build_wind[y] == 0) => (bw_wa[y] == 0);
+    	  Gen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  wind_additions[y] >= 0;
+    	  bw_wa[y] >= 0;
+	}
+	
+	//sum(y in Years) build_solar[y] <= 5;    
     
 
 //Emissions
