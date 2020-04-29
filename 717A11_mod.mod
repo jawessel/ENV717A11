@@ -9,14 +9,16 @@ int NumBuses = ...; //Number of buses
 int NumLines = ...; //Number of transmission lines
 int NumUnits = ...; //Number of generating units
 int NumYears = ...; //Number of years in planning horizon
+int NumPeriods = ...; //seasons * peak/off peak * years 
 
 range Buses = 1..NumBuses;
 range Lines = 1..NumLines;
 range Units = 1..NumUnits;
 range Years = 1..NumYears;
+range Periods = 1..NumPeriods; 
 
 //Demand (Load)
-float Demand [Buses][Years] = ...; //Demand (MW) for each bus
+float Demand [Buses][Periods] = ...; //Demand (MW) for each bus during each period 
 int LineToBus [Buses][Lines]=...; //Define lines by their start and end points
 int LineFromBus [Buses][Lines]=...;
 int UnitsByBus [Buses][Units]=...; //Number of generating units in each bus
@@ -51,15 +53,15 @@ float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
-dvar float+ Gen [u in Units, y in Years] in 0..MaxGen [u]; //Generation for each Unit (MW)
-dvar float Flow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
+dvar float+ Gen [u in Units, p in Periods] in 0..MaxGen [u]; //Generation for each Unit (MW)
+dvar float Flow[l in Lines, p in Periods] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar boolean on[u in Units, y in Years];
 dvar float objective [y in Years]; //objective function set as a decision variable
-dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
-dvar float SO2_total [y in Years];
-dvar float CO2_total [y in Years];
-dvar float CH4_total [y in Years];
-dvar float N2O_total [y in Years];
+dvar float NOx_total [p in Periods]; //Emissions decision variables (only CO2 is constrained so far)
+dvar float SO2_total [p in Periods];
+dvar float CO2_total [p in Periods];
+dvar float CH4_total [p in Periods];
+dvar float N2O_total [p in Periods];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
@@ -74,39 +76,41 @@ dvar boolean EV_subsidy_decision; //binary decision for whether or not to instat
 
 //Objective Function
 minimize 
-  sum(y in Years) objective[y];   //Minimize Energy Costs
+  sum(p in Periods) objective[p];   //Minimize Energy Costs
 
 //Constraints
 subject to {
   
 //Assign obj function and emissions values to variables
 	Objective:
-	forall(y in Years)
-	{	//Total cost is calculated here
-	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
+	forall(p in Periods) //Total cost is calculated here
+	{	
+	    objective[p] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y*p] * MarginalC[u])
 	    	+ (capex_solar * solar_additions[y]) + (new_solar_cap[y] * opex_solar)
 	    		+ (capex_wind * wind_additions[y]) + (new_wind_cap[y] * opex_wind))
-	    			+ (EV_subsidy_cost*EV_subsidy_decision);
+	    			+ (EV_subsidy_cost*EV_subsidy_decision);	    	    
     }	   
     
-    forall(y in Years) //Emissions are summed up for output file
-    { 		
+    forall(p in Periods) //Emissions are summed up for output file
+    { 	
+
 		NOx_total[y] == sum(u in Units) Gen[u][y] * NOx[u];
 		SO2_total[y] == sum(u in Units) Gen[u][y] * SO2[u];
 		CO2_total[y] == sum(u in Units) Gen[u][y] * CO2[u];
 		CH4_total[y] == sum(u in Units) Gen[u][y] * CH4[u];
 		N2O_total[y] == sum(u in Units) Gen[u][y] * N2O[u];
-	}		
+		
+  }
   
 //Meet demand       
    TotalPowerBalance:
-    forall(y in Years) 
+    forall(p in Periods) 
     { 
         sum(u in Units) Gen[u][y] == sum(b in Buses) Demand[b][y];
     };		 	  	    
       
    BusPowerBalance:
-    forall(y in Years)
+    forall(p in Periods)
     {
     	forall(b in Buses) 
     	{
@@ -126,26 +130,26 @@ subject to {
      };		 
             
 //Max/Min Unit Constraints   
-	forall(y in Years)
+	forall(p in Periods)
 	{
     	forall(u in Units)
       	  MaxGeneration:
     	    Gen[u,y] <= MaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
     }
     
-    forall(y in Years)
+    forall(p in Periods)
     {    
     	forall(u in Units)
       	  MinGeneration:
-    	    Gen[u,y] >= MinGen[u]*on[u,y];
+    	    Gen[u,p] >= MinGen[u]*on[u,p];
     }    	    	
 
 //Transmission Lines
-	forall(y in Years)
+	forall(p in Periods)
 	{
 		forall(l in Lines)
 	  	  MaxFlow:
-	  		Flow[l,y] <= LineCapacity[l];
+	  		Flow[l,p] <= LineCapacity[l];
     }	 
 	  	
 	forall(y in Years)
