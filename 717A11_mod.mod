@@ -94,11 +94,11 @@ dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity
 dvar boolean on[u in Units, y in Years];
 
 dvar float objective [y in Years]; //objective function set as a decision variable
-dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
-dvar float SO2_total [y in Years];
+//dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
+//dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
-dvar float CH4_total [y in Years];
-dvar float N2O_total [y in Years];
+//dvar float CH4_total [y in Years];
+//dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
@@ -350,8 +350,8 @@ subject to {
     }	  
     
     
-    EmissionsGoals:
-    	CO2_total[26] == 0; //uncomment for carbon-free electricity
+    //EmissionsGoals:
+    	//CO2_total[26] == 0; //uncomment for carbon-free electricity
     	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
     	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
