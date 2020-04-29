@@ -43,7 +43,10 @@ float LineReactance[Lines]=...;
 float LineCapacity[Lines]=...;
 
 //Generator Parameters
-float PeakMaxGen [Units] = ...; //Unit Maximum Generation during peak hours (MW)
+float WinterPeakMaxGen [Units] = ...; //Unit Maximum Generation during peak hours (MW)
+float SpringPeakMaxGen [Units] = ...; 
+float SummerPeakMaxGen [Units] = ...; 
+float FallPeakMaxGen [Units] = ...; 
 float OffMaxGen [Units] = ...; //Unit Maximum Generation during off-peak hours (MW)
 float MinGen [Units] = ...; //Unit Minimum Generation (MW)
 float MarginalC[Units] = ...; //Unit Marginal Cost of Energy ($/MWh)
@@ -69,23 +72,23 @@ float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
-dvar float+ WinterPeakGen [u in Units, y in Years] in 0..PeakMaxGen[u]; //Peak Generation for each Unit (MW)
+dvar float+ WinterPeakGen [u in Units, y in Years] in 0..WinterPeakMaxGen[u]; //Peak Generation for each Unit (MW)
 //Need to change the minimum of PeakGen to allow batteries to charge
 dvar float+ WinterOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float WinterPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float WinterOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-dvar float+ SpringPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ SpringPeakGen [u in Units, y in Years] in 0..SpringPeakMaxGen[u];
 dvar float+ SpringOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float SpringPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float SpringOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)dvar float+ SummerPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
 
-dvar float+ SummerPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ SummerPeakGen [u in Units, y in Years] in 0..SummerPeakMaxGen[u];
 dvar float+ SummerOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float SummerPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float SummerOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-dvar float+ FallPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ FallPeakGen [u in Units, y in Years] in 0..FallPeakMaxGen[u];
 dvar float+ FallOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float FallPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
@@ -241,13 +244,13 @@ subject to {
 	forall(y in Years)
 	{
     	forall(u in Units){
-    	    WinterPeakGen[u,y] <= PeakMaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
+    	    WinterPeakGen[u,y] <= WinterPeakMaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
     	    WinterOffGen[u,y] <= OffMaxGen[u] *on[u,y];
-    	    SpringPeakGen[u,y] <= PeakMaxGen[u] *on[u,y];
+    	    SpringPeakGen[u,y] <= SpringPeakMaxGen[u] *on[u,y];
     	    SpringOffGen[u,y] <= OffMaxGen[u] *on[u,y];
-    	    SummerPeakGen[u,y] <= PeakMaxGen[u] *on[u,y];
+    	    SummerPeakGen[u,y] <= SummerPeakMaxGen[u] *on[u,y];
     	    SummerOffGen[u,y] <= OffMaxGen[u] *on[u,y];
-    	    FallPeakGen[u,y] <= PeakMaxGen[u] *on[u,y];
+    	    FallPeakGen[u,y] <= FallPeakMaxGen[u] *on[u,y];
     	    FallOffGen[u,y] <= OffMaxGen[u] *on[u,y];
        }    	    
     }
