@@ -44,7 +44,6 @@ solar_inc from SheetRead(sheet, "solar_inc");
 wind_inc from SheetRead(sheet, "wind_inc");
 solar_cap_factor from SheetRead(sheet, "solar_cap_factor");
 wind_cap_factor from SheetRead(sheet, "wind_cap_factor");
-
 EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
 
 DiscRate from SheetRead(sheet, "DiscRate");
