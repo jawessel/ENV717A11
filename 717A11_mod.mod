@@ -239,7 +239,7 @@ subject to {
 	  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
     	  (build_storage[y] == 1) => (bb_ba[y] == storage_additions[y]);
     	  (build_storage[y] == 0) == (bb_ba[y] == 0);
-    	  PeakGen[43][y] <= - new_storage_cap[y];
+    	  PeakGen[43][y] >= - new_storage_cap[y];
     	  OffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  storage_additions[y] >= 0;
     	  bb_ba[y] >= 0;
