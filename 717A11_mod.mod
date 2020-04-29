@@ -228,21 +228,17 @@ subject to {
 
 //Storage Constraints
 	forall(y in Years)
-	{
-	  LimitedBySolar:
-	  new_storage_cap[y] <= 0.2 * new_solar_cap[y]; //storage capacity maxes out at 20% of new solar capacity
-	}
-	
-	forall(y in Years)
 	{	  	
 	  MaxStorageGen:
-	  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
+		  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
     	  (build_storage[y] == 1) => (bb_ba[y] == storage_additions[y]);
     	  (build_storage[y] == 0) == (bb_ba[y] == 0);
-    	  PeakGen[43][y] >= - new_storage_cap[y];
+    	  PeakGen[43][y] == - new_storage_cap[y];
     	  OffGen[43][y] <= new_storage_cap[y] * bat_eff;
+    	  sum(y in Years) PeakGen[43][y] + OffGen[43][y] == 0; //no free energy from discharging an empty battery
     	  storage_additions[y] >= 0;
     	  bb_ba[y] >= 0;
+    	  new_storage_cap[y] <= 0.2 * new_solar_cap[y]; //storage capacity maxes out at 20% of new solar capacity
 	} 
     
 
