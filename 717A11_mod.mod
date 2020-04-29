@@ -331,15 +331,15 @@ subject to {
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
     	  (build_wind[y] == 0) == (bw_wa[y] == 0);
     	  
-    	  WinterPeakGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
-    	  SpringPeakGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
-    	  SummerPeakGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
-    	  FallPeakGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  WinterPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  SpringPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  SummerPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  FallPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  
-    	  WinterOffGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
-    	  SpringOffGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
-    	  SummerOffGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
-    	  FallOffGen[41][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  WinterOffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  SpringOffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  SummerOffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
+    	  FallOffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  
     	  wind_additions[y] >= 0;
     	  bw_wa[y] >= 0;
