@@ -60,8 +60,7 @@ dvar float+ PeakGen [u in Units, y in Years] in 0..PeakMaxGen[u]; //Peak Generat
 dvar float+ OffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float PeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float OffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
-dvar boolean Peakon[u in Units, y in Years];
-dvar boolean Offon[u in Units, y in Years];
+dvar boolean on[u in Units, y in Years];
 dvar float objective [y in Years]; //objective function set as a decision variable
 dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
 dvar float SO2_total [y in Years];
@@ -148,22 +147,22 @@ subject to {
 	{
     	forall(u in Units)
       	  PeakMaxGeneration:
-    	    PeakGen[u,y] <= PeakMaxGen[u]*Peakon[u,y]; //multiplied by binary variable to ensure it's switched on
+    	    PeakGen[u,y] <= PeakMaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
     	
     	forall(u in Units)    
     	  OffMaxGeneration:
-    	    OffGen[u,y] <= OffMaxGen[u]*Offon[u,y]; //multiplied by binary variable to ensure it's switched on
+    	    OffGen[u,y] <= OffMaxGen[u] *on[u,y]; //multiplied by binary variable to ensure it's switched on
     }
     
     forall(y in Years)
     {    
     	forall(u in Units)
       	  PeakMinGeneration:
-    	    PeakGen[u,y] >= MinGen[u]*Peakon[u,y];
+    	    PeakGen[u,y] >= MinGen[u]*on[u,y];
     	    
     	forall(u in Units)
       	  OffMinGeneration:
-    	    OffGen[u,y] >= MinGen[u]*Offon[u,y];
+    	    OffGen[u,y] >= MinGen[u]* on[u,y];
     }    	    	
 
 //Transmission Lines
