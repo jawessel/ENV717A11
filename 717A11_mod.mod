@@ -84,8 +84,8 @@ subject to {
 	forall(y in Years)
 	{	//Total cost is calculated here
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) Gen[u][y] * MarginalC[u])
-	    	+ (capex_solar * solar_additions[y]) + (new_solar_cap[y] * opex_solar)
-	    		+ (capex_wind * wind_additions[y]) + (new_wind_cap[y] * opex_wind))
+	    	+ (capex_solar * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
+	    		+ (capex_wind * bw_wa[y]) + (new_wind_cap[y] * opex_wind))
 	    			+ (EV_subsidy_cost*EV_subsidy_decision);
     }	   
     
@@ -162,7 +162,7 @@ subject to {
     	   //constrains new solar generation to be less than the total installed capacity up to that point
     	  new_solar_cap[y] == sum(z in Years : z<=y) bs_sa[z] * solar_inc;
     	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
-    	  (build_solar[y] == 0) => (bs_sa[y] == 0);
+    	  (build_solar[y] == 0) == (bs_sa[y] == 0);
     	  Gen[41][y] <= new_solar_cap[y] * solar_cap_factor;
     	  solar_additions[y] >= 0;
     	  bs_sa[y] >= 0;
@@ -173,7 +173,7 @@ subject to {
 	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
 	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
-    	  (build_wind[y] == 0) => (bw_wa[y] == 0);
+    	  (build_wind[y] == 0) == (bw_wa[y] == 0);
     	  Gen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  wind_additions[y] >= 0;
     	  bw_wa[y] >= 0;
@@ -183,15 +183,11 @@ subject to {
     
 
 //Emissions
-	//forall(y in Years: y>1)
-	//{
-		//CO2_emissions:
-	  	//  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
+	forall(y in Years: y>1)
+	{
+		CO2_emissions:
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
 	  	  
-    //}	  
-    
-    EmissionsGoals:
-    	CO2_total[26] == 0; //uncomment for carbon-free electricity
-    	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
-    	600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / Demand[b][y]; 
+	  	  //CO2_total[26] == 0; //uncomment for carbon-free electricity
+    }	  	 
 }  
