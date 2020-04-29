@@ -39,14 +39,17 @@ float CO2 [Units] = ...; //CO2 Emissions by generator (lb/MWh)
 float CH4 [Units] = ...; //CH4 Emissions by generator (lb/MWh)
 float N2O [Units] = ...; //N2O Emissions by generator (lb/MWh)
 
-float capex_solar = ...; //Capital Cost of a solar project ($)
+float capex_solar = ...; //Capital Cost of a solar project ($/MW)
 float opex_solar = ...; //Annual O&M Cost of new solar ($/MW)
-float capex_wind = ...; //Capital Cost of a wind project ($)
+float capex_wind = ...; //Capital Cost of a wind project ($/MW)
 float opex_wind = ...; //Annual O&M Cost of new wind ($/MW)
 float solar_inc = ...; //Incremental amount of solar that can be built (MW)
 float wind_inc = ...; //Incremental amount of wind that can be built (MW)
 float solar_cap_factor = ...; //How much of the installed solar capacity will be generated at this hour in the year
 float wind_cap_factor = ...; //How much of the installed wind capacity will be generated at this hour in the year
+float capex_storage = ...; //Capital Cost of a storage project ($/MW)
+float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
+float bat_eff = ...; //battery round-trip efficiency
 
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 
@@ -74,8 +77,12 @@ dvar boolean build_wind [y in Years]; //binary decision for whether or not to bu
 dvar int wind_additions [y in Years] in 0..10000; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
 dvar float new_solar_cap [y in Years];
 dvar float new_wind_cap [y in Years];
+dvar boolean build_storage [y in Years];
+dvar float storage_additions [y in Years] in 0..10000;
+dvar float new_storage_cap [y in Years];
 dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints
 dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints
+dvar int bb_ba [y in Years];
 
 dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 
@@ -93,8 +100,9 @@ subject to {
 	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) PeakGen[u][y] * MarginalC[u] /* PeakHours*/)
 	    	+ (sum(u in Units) OffGen[u][y] * MarginalC[u] /* OffHours*/)
 	    	+ (capex_solar * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
-	    		+ (capex_wind * bw_wa[y]) + (new_wind_cap[y] * opex_wind))
-	    			+ (EV_subsidy_cost*EV_subsidy_decision);
+	    		+ (capex_wind * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
+	    			+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage))
+	    				+ (EV_subsidy_cost*EV_subsidy_decision);
     }	   
     
     forall(y in Years) //Emissions are summed up for output file
@@ -142,8 +150,8 @@ subject to {
 	KVLAroundTheLoop:
 	 forall(y in Years)
 	 {
-		 sum(l in Lines)	LineReactance[l]*PeakFlow[l,y] == 0;
-		 sum(l in Lines)	LineReactance[l]*OffFlow[l,y] == 0;
+		 sum(l in Lines)	LineReactance[l]*PeakFlow[l,y] == 0; //Peak
+		 sum(l in Lines)	LineReactance[l]*OffFlow[l,y] == 0; //Off Peak
      };		 
             
 //Max/Min Unit Constraints   
@@ -217,16 +225,33 @@ subject to {
     	  wind_additions[y] >= 0;
     	  bw_wa[y] >= 0;
 	}
+
+//Storage Constraints
+	forall(y in Years)
+	{
+	  LimitedBySolar:
+	  new_storage_cap[y] <= 0.2 * new_solar_cap[y]; //storage capacity maxes out at 20% of new solar capacity
+	}
 	
-	//sum(y in Years) build_solar[y] <= 5;    
+	forall(y in Years)
+	{	  	
+	  MaxStorageGen:
+	  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
+    	  (build_storage[y] == 1) => (bb_ba[y] == storage_additions[y]);
+    	  (build_storage[y] == 0) == (bb_ba[y] == 0);
+    	  PeakGen[43][y] <= - new_storage_cap[y];
+    	  OffGen[43][y] <= new_storage_cap[y] * bat_eff;
+    	  storage_additions[y] >= 0;
+    	  bb_ba[y] >= 0;
+	} 
     
 
 //Emissions
-	//Simplified emissions constraiton - more efficient in solving than the 600lb average
+	//Simplified emissions constraint - more efficient in solving than the 600lb average
 	forall(y in Years: y>1)
 	{
 		CO2_emissions:
-	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
 	  	  
     }	  
     

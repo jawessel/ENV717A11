@@ -45,6 +45,9 @@ wind_inc from SheetRead(sheet, "wind_inc");
 solar_cap_factor from SheetRead(sheet, "solar_cap_factor");
 wind_cap_factor from SheetRead(sheet, "wind_cap_factor");
 EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
+capex_storage from SheetRead(sheet, "CAPEX_storage");
+opex_storage from SheetRead(sheet, "OPEX_storage");
+bat_eff from SheetRead(sheet, "bat_eff");
 
 DiscRate from SheetRead(sheet, "DiscRate");
 maxCO2 from SheetRead(sheet, "maxCO2");
