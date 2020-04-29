@@ -219,16 +219,19 @@ subject to {
     
 
 //Emissions
-	//forall(y in Years: y>1)
-	//{
-		//CO2_emissions:
-	  	//  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
+	//Simplified emissions constraiton - more efficient in solving than the 600lb average
+	forall(y in Years: y>1)
+	{
+		CO2_emissions:
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576;
 	  	  
-    //}	  
+    }	  
     
+    /* Removed for shorter solve time
     EmissionsGoals:
     	//CO2_total[26] == 0; //uncomment for carbon-free electricity
     	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
-    	600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours); 
+    	600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
+    	*/ 
 }  
