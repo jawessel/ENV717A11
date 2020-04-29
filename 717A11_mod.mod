@@ -50,6 +50,7 @@ float wind_cap_factor = ...; //How much of the installed wind capacity will be g
 float capex_storage = ...; //Capital Cost of a storage project ($/MW)
 float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
 float bat_eff = ...; //battery round-trip efficiency
+float RampRate = ...; //Ramp rate for ramping constraints
 
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 
