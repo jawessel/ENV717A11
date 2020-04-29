@@ -247,8 +247,8 @@ subject to {
 	forall(y in Years: y>1)
 	{
 		CO2_emissions:
-	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
-	  	  
+	  	  //CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.8; //huge yearly reduction in emissions stops model from building all necessary renewables in the very last year
     }	  
     
     
