@@ -63,6 +63,11 @@ solar_cap_factor from SheetRead(sheet, "solar_cap_factor");
 wind_cap_factor from SheetRead(sheet, "wind_cap_factor");
 EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
 
+WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
+SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
+SummerSolarFactor from SheetRead(sheet, "SummerSolarFactor");
+FallSolarFactor from SheetRead(sheet, "FallSolarFactor");
+
 DiscRate from SheetRead(sheet, "DiscRate");
 maxCO2 from SheetRead(sheet, "maxCO2");
 

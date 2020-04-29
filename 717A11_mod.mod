@@ -65,6 +65,11 @@ float wind_inc = ...; //Incremental amount of wind that can be built (MW)
 float solar_cap_factor = ...; //How much of the installed solar capacity will be generated at this hour in the year
 float wind_cap_factor = ...; //How much of the installed wind capacity will be generated at this hour in the year
 
+float WinterSolarFactor = ...; //Amount of solar capacity available during peak hours in the winter
+float SpringSolarFactor = ...;
+float SummerSolarFactor = ...;
+float FallSolarFactor = ...;
+
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 
 //Optimization Parameters
@@ -310,10 +315,10 @@ subject to {
     	  (build_solar[y] == 0) == (bs_sa[y] == 0);
     	  
     	  //Need to rework capacity factor for VERs
-    	  WinterPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor;
-    	  SpringPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor;
-    	  SummerPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor;
-    	  FallPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor;
+    	  WinterPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * WinterSolarFactor;
+    	  SpringPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * SpringSolarFactor;
+    	  SummerPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * SummerSolarFactor;
+    	  FallPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * FallSolarFactor;
     	  
     	  solar_additions[y] >= 0;
     	  bs_sa[y] >= 0;
