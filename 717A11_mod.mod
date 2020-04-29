@@ -62,11 +62,11 @@ dvar float PeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]
 //dvar float OffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar boolean on[u in Units, y in Years];
 dvar float objective [y in Years]; //objective function set as a decision variable
-//dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
-//dvar float SO2_total [y in Years];
+dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
+dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
-//dvar float CH4_total [y in Years];
-//dvar float N2O_total [y in Years];
+dvar float CH4_total [y in Years];
+dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
@@ -100,11 +100,11 @@ subject to {
     forall(y in Years) //Emissions are summed up for output file
     { 		
 		//Commented out in hopes of removing excess multiple 
-		//NOx_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * NOx[u];
-		//SO2_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * SO2[u];
+		NOx_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * NOx[u];
+		SO2_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * SO2[u];
 		CO2_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * CO2[u];
-		//CH4_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * CH4[u];
-		//N2O_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * N2O[u];
+		CH4_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * CH4[u];
+		N2O_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * N2O[u];
 	}		
   
 //Meet demand       
