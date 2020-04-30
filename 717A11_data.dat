@@ -100,11 +100,11 @@ FallOffGen to SheetWrite(sheetResults,"FallOffGen");
 
 //on to SheetWrite(sheetResults,"GenOnline"); //Produces a helpful table that more visually indicated when a generator is retired
 objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
-//NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
-//SO2_total to SheetWrite(sheetResults,"SO2_total");
+NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
+SO2_total to SheetWrite(sheetResults,"SO2_total");
 CO2_total to SheetWrite(sheetResults,"CO2_total");
-//CH4_total to SheetWrite(sheetResults,"CH4_total");
-//N2O_total to SheetWrite(sheetResults,"N2O_total");
+CH4_total to SheetWrite(sheetResults,"CH4_total");
+N2O_total to SheetWrite(sheetResults,"N2O_total");
 
 build_wind to SheetWrite(sheetResults,"BuildWind");
 build_solar to SheetWrite(sheetResults,"BuildSolar");

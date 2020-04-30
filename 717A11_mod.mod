@@ -108,11 +108,11 @@ dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity
 dvar boolean on[u in Units, y in Years];
 
 dvar float objective [y in Years]; //objective function set as a decision variable
-//dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
-//dvar float SO2_total [y in Years];
+dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
+dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
-//dvar float CH4_total [y in Years];
-//dvar float N2O_total [y in Years];
+dvar float CH4_total [y in Years];
+dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
@@ -158,14 +158,26 @@ subject to {
     forall(y in Years) //Emissions are summed up for output file
     { 		
 		//Need to be revised after seasons are completely added 
-		//NOx_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * NOx[u];
-		//SO2_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * SO2[u];
+		NOx_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
+			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * NOx[u];
+		SO2_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
+			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * SO2[u];
 		CO2_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
 			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CO2[u];
-		//CH4_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * CH4[u];
-		//N2O_total[y] == sum(u in Units) (PeakGen[u][y] * PeakHours /*+ OffGen[u][y] * OffHours*/) * N2O[u];
+		CH4_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
+			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CH4[u];
+		N2O_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
+			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * N2O[u];
 	}		
   
 //Meet demand       
