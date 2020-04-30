@@ -58,7 +58,7 @@ float N2O [Units] = ...; //N2O Emissions by generator (lb/MWh)
 
 float capex_solar[Years] = ...; //Capital Cost of a solar project ($/MW)
 float opex_solar = ...; //Annual O&M Cost of new solar ($/MW)
-float capex_wind = ...; //Capital Cost of a wind project ($/MW)
+float capex_wind[Years] = ...; //Capital Cost of a wind project ($/MW)
 float opex_wind = ...; //Annual O&M Cost of new wind ($/MW)
 float solar_inc = ...; //Incremental amount of solar that can be built (MW)
 float wind_inc = ...; //Incremental amount of wind that can be built (MW)
@@ -150,7 +150,7 @@ subject to {
 	    	+ (sum(u in Units) FallPeakGen[u][y] * MarginalC[u] * FallPeakHours)
 	    	+ (sum(u in Units) FallOffGen[u][y] * MarginalC[u] * FallOffHours)
 	    	+ (capex_solar[y] * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
-	    		+ (capex_wind * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
+	    		+ (capex_wind[y] * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
 	    			+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage))
 	    				+ (EV_subsidy_cost*EV_subsidy_decision);
     }	   
