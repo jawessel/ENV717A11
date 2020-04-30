@@ -50,7 +50,7 @@ float wind_cap_factor = ...; //How much of the installed wind capacity will be g
 float capex_storage = ...; //Capital Cost of a storage project ($/MW)
 float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
 float bat_eff = ...; //battery round-trip efficiency
-float RampRate = ...; //Ramp rate for ramping constraints
+float RampRate [u in Units] = ...; //Ramp rate for ramping constraints
 
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 
@@ -173,9 +173,9 @@ subject to {
       	  PeakMinGeneration:
     	    PeakGen[u,y] >= MinGen[u]*on[u,y];
     	    
-    	//forall(u in Units)
-      	//  OffMinGeneration:
-    	//    OffGen[u,y] >= MinGen[u]* on[u,y];
+    	forall(u in Units)
+      	  OffMinGeneration:
+    	    OffGen[u,y] >= MinGen[u]* on[u,y];
     }    	    	
 
 //Transmission Lines
@@ -203,7 +203,7 @@ subject to {
     
 //New Renewables Constraints 
 	forall(y in Years)
-	{   
+	  {   
     	MaxSolarGen:
     	   //constrains new solar generation to be less than the total installed capacity up to that point
     	   //solar only needs to consider PeakGen, all OffMaxGen set to 0
@@ -213,10 +213,10 @@ subject to {
     	  PeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor;
     	  solar_additions[y] >= 0;
     	  bs_sa[y] >= 0;
-	}
+	  }
 	
 	forall(y in Years)
-	{
+	  {
 	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
 	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
@@ -225,12 +225,12 @@ subject to {
     	  OffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  wind_additions[y] >= 0;
     	  bw_wa[y] >= 0;
-	}
+	  }
 
 //Storage Constraints
 	forall(y in Years)
-	{	  	
-	  MaxStorageGen:
+	  {	  	
+	  	MaxStorageGen:
 		  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
     	  (build_storage[y] == 1) => (bb_ba[y] == storage_additions[y]);
     	  (build_storage[y] == 0) == (bb_ba[y] == 0);
@@ -240,17 +240,26 @@ subject to {
     	  storage_additions[y] >= 0;
     	  bb_ba[y] >= 0;
     	  new_storage_cap[y] <= 0.2 * new_solar_cap[y]; //storage capacity maxes out at 20% of new solar capacity
-	} 
+	  }
+
+//Ramping Constraint (only upheld for the peak and off-peak demand hours for each season)
+	forall(y in Years)
+	  {
+		forall(u in Units)
+	    {
+	      PeakGen[u,y] - OffGen[u,y] <= RampRate[u] * on[u,y];
+	    };
+	  }
     
 
 //Emissions
 	//Simplified emissions constraint - more efficient in solving than the 600lb average
 	forall(y in Years: y>1)
-	{
+	  {
 		CO2_emissions:
 	  	  //CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
 	  	  CO2_total[y] <= CO2_total[y-1] * 0.8; //huge yearly reduction in emissions stops model from building all necessary renewables in the very last year
-    }	  
+      }	  
     
     
     EmissionsGoals:
