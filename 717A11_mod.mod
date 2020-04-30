@@ -375,6 +375,7 @@ subject to {
     	  SummerOffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  FallOffGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  
+    	  new_wind_cap[y] <= 3000;
     	  wind_additions[y] >= 0;
     	  bw_wa[y] >= 0;
 	  }
