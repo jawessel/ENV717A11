@@ -71,6 +71,13 @@ float RampRate [u in Units] = ...; //Ramp rate for ramping constraints
 int SolarBuildTime = ...;
 int WindBuildTime = ...;
 
+int ngccBuildTime = ...;
+float capex_ngcc[Years] = ...; //Capital Cost of an NGCC project ($/MW)
+float opex_ngcc = ...; //Annual O&M Cost of new NGCC ($/MW) - may need to treat differently due to fuel costs
+float ngcc_inc = ...; //Incremental amount of NGCC that can be built (MW)
+float ngcc_cap_factor = ...; //How much of the installed NGCC capacity will be generated at this hour in the year
+
+
 float WinterSolarFactor = ...; //Amount of solar capacity available during peak hours in the winter
 float SpringSolarFactor = ...;
 float SummerSolarFactor = ...;
@@ -118,14 +125,18 @@ dvar boolean build_solar [y in Years]; //binary decision for whether or not to b
 dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
 dvar boolean build_wind [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int wind_additions [y in Years] in 0..10000; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
+dvar boolean build_ngcc [y in Years]; //binary decision for whether or not to build NGCC generation in a given year
+dvar int ngcc_additions [y in Years] in 0..10000; //number of NGCC modules that will be built (multiplied by solar_inc to get total capacity)
 dvar float new_solar_cap [y in Years];
 dvar float new_wind_cap [y in Years];
+dvar float new_ngcc_cap [y in Years];
 dvar boolean build_storage [y in Years];
 dvar float storage_additions [y in Years] in 0..10000;
 dvar float new_storage_cap [y in Years];
 dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints
 dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints
 dvar int bb_ba [y in Years];
+dvar int bn_na [y in Years];
 
 dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 
@@ -150,6 +161,7 @@ subject to {
 	    	+ (sum(u in Units) FallPeakGen[u][y] * MarginalC[u] * FallPeakHours)
 	    	+ (sum(u in Units) FallOffGen[u][y] * MarginalC[u] * FallOffHours)
 	    	+ (capex_solar[y] * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
+	    	+ (capex_ngcc[y] * bn_na[y]) + (new_ngcc_cap[y] * opex_ngcc) //may be able to nix opex and use MarginalC
 	    		+ (capex_wind[y] * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
 	    			+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage))
 	    				+ (EV_subsidy_cost*EV_subsidy_decision);
@@ -326,6 +338,29 @@ subject to {
 	  		FallOffFlow[l,y] >= -LineCapacity[l];
    		}    	
     }
+    
+    //New Conventional Generation
+    forall(y in Years)
+	  {   
+    	MaxNGCCGen:
+    	//not currenly choosing to build NGCC - likely need to add emissions and ramping ability
+    	  new_ngcc_cap[y] == sum(z in Years : z<=y - ngccBuildTime) bn_na[z] * ngcc_inc;
+    	  (build_ngcc[y] == 1) => (bn_na[y] == ngcc_additions[y]);
+    	  (build_ngcc[y] == 0) == (bn_na[y] == 0);
+    	  
+    	  WinterPeakGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  SpringPeakGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  SummerPeakGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  FallPeakGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  
+    	  WinterOffGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  SpringOffGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  SummerOffGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  FallOffGen[44][y] <= new_ngcc_cap[y] * ngcc_cap_factor;
+    	  
+    	  ngcc_additions[y] >= 0;
+    	  bn_na[y] >= 0;
+	  }
     
 //New Renewables Constraints 
 	forall(y in Years)

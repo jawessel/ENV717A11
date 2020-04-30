@@ -69,6 +69,12 @@ RampRate from SheetRead(sheet, "RampRate");
 SolarBuildTime from SheetRead(sheet, "SolarBuildTime");
 WindBuildTime from SheetRead(sheet, "WindBuildTime");
 
+ngccBuildTime from SheetRead(sheet, "NGCCBuildTime");
+capex_ngcc from SheetRead(sheet, "CAPEX_ngcc");
+opex_ngcc from SheetRead(sheet, "OPEX_NGCC");
+ngcc_inc from SheetRead(sheet, "ngcc_inc");
+ngcc_cap_factor from SheetRead(sheet, "ngcc_cap_factor");
+
 WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
 SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
 SummerSolarFactor from SheetRead(sheet, "SummerSolarFactor");
