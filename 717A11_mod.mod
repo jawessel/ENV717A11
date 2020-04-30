@@ -166,12 +166,12 @@ subject to {
 	    	+ (sum(u in Units) SummerOffGen[u][y] * MarginalC[u] * SummerOffHours)
 	    	+ (sum(u in Units) FallPeakGen[u][y] * MarginalC[u] * FallPeakHours)
 	    	+ (sum(u in Units) FallOffGen[u][y] * MarginalC[u] * FallOffHours)
-	    	+ (capex_solar[y] * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
+	    	+ (capex_solar[y] * bs_sa[y] * solar_inc) + (new_solar_cap[y] * opex_solar)
 	    		+ (capex_ngcc[y] * bn_na[y]) + (new_ngcc_cap[y] * opex_ngcc) //may be able to nix opex and use MarginalC
-	    			+ (capex_wind[y] * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
+	    			+ (capex_wind[y] * bw_wa[y] * wind_inc) + (new_wind_cap[y] * opex_wind)
 	    				+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage)
-							+ (fridge_eff_cost * fridge_eff_decision))
-	    						+ (led_eff_cost * led_eff_decision) //Check parenthesis placement
+							+ (fridge_eff_cost * fridge_eff_decision)
+	    						+ (led_eff_cost * led_eff_decision))
 	    							+ (EV_subsidy_cost*EV_subsidy_decision);
     }	   
     
