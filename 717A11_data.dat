@@ -4,7 +4,7 @@
  * Creation Date: Apr 16, 2020 at 3:57:31 PM
  *********************************************/
 
- //Simulate NicISO Power System to calculate LMPs, diagnose system deficiencies, and offer direction for system improvements.
+//Simulate NicISO Power System to calculate LMPs, diagnose system deficiencies, and offer direction for system improvements.
 
 SheetConnection sheet("717A11_data_in.xlsx");	//Opens the spreadsheet with the data to be read
 //All the names in "" are NamedRanges in Excel
@@ -14,7 +14,30 @@ NumLines from SheetRead(sheet, "NumLines"); //= 3;
 NumUnits from SheetRead(sheet, "NumUnits"); //= 20;
 NumYears from SheetRead(sheet, "NumYears"); //= 26 (2020-2045);
 
-Demand from SheetRead(sheet, "BusDemand"); /*Demand (MW)*/
+WinterPeakDemand from SheetRead(sheet, "WinterDemandPeak"); /*Demand (MW)*/
+WinterOffDemand from SheetRead(sheet, "WinterDemandOff"); /*Demand (MW)*/
+SpringPeakDemand from SheetRead(sheet, "SpringDemandPeak"); /*Demand (MW)*/
+SpringOffDemand from SheetRead(sheet, "SpringDemandOff"); /*Demand (MW)*/
+SummerPeakDemand from SheetRead(sheet, "SummerDemandPeak"); /*Demand (MW)*/
+SummerOffDemand from SheetRead(sheet, "SummerDemandOff"); /*Demand (MW)*/
+FallPeakDemand from SheetRead(sheet, "FallDemandPeak"); /*Demand (MW)*/
+FallOffDemand from SheetRead(sheet, "FallDemandOff"); /*Demand (MW)*/
+
+WinterPPDemand from SheetRead(sheet, "WinterPPDemand"); /*peak winter demand (MW)*/
+SpringPPDemand from SheetRead(sheet, "SpringPPDemand"); /*peak winter demand (MW)*/
+SummerPPDemand from SheetRead(sheet, "SummerPPDemand"); /*peak winter demand (MW)*/
+FallPPDemand from SheetRead(sheet, "FallPPDemand"); /*peak winter demand (MW)*/
+
+
+WinterPeakHours from SheetRead(sheet, "WinterPeakHours"); 
+WinterOffHours from SheetRead(sheet, "WinterOffHours");
+SpringPeakHours from SheetRead(sheet, "SpringPeakHours"); 
+SpringOffHours from SheetRead(sheet, "SpringOffHours");
+SummerPeakHours from SheetRead(sheet, "SummerPeakHours"); 
+SummerOffHours from SheetRead(sheet, "SummerOffHours");
+FallPeakHours from SheetRead(sheet, "FallPeakHours"); 
+FallOffHours from SheetRead(sheet, "FallOffHours");
+
 LineToBus from SheetRead(sheet, "LinetoBus"); //= 4;= [[0 0 1] [1 0 0] [0 1 0]]; //[b,l]=1 if line L does to bus b, 0 otherwise
 LineFromBus from SheetRead(sheet, "LineFromBus"); //= 4;= [[1 0 0] [0 1 0] [0 0 1]]; //[b,l]=1 if line L departs from bus b, 0 otherwise
 UnitsByBus from SheetRead(sheet, "UnitsByBus"); //= 4;=[[1 1 0 0] [0 0 1 0] [0 0 0 1]]; //[b,u]=1 if generator u is located at bus b, 0 otherwise
@@ -22,7 +45,11 @@ UnitsByBus from SheetRead(sheet, "UnitsByBus"); //= 4;=[[1 1 0 0] [0 0 1 0] [0 0
 LineReactance from SheetRead(sheet, "LineReactance"); //= [0.2 0.1 0.2];
 LineCapacity from SheetRead(sheet, "LineCapacity"); //= [126 130 250];
 
-MaxGen from SheetRead(sheet, "MaxGen"); //= [140 285 90 85]; /*Unit maximum generation (MW)*/
+WinterPeakMaxGen from SheetRead(sheet, "WinterMaxGenPeak"); //= [140 285 90 85]; /*Unit maximum generation (MW)*/
+SpringPeakMaxGen from SheetRead(sheet, "SpringMaxGenPeak");
+SummerPeakMaxGen from SheetRead(sheet, "SummerMaxGenPeak");
+FallPeakMaxGen from SheetRead(sheet, "FallMaxGenPeak");
+OffMaxGen from SheetRead(sheet, "MaxGenOff");
 MinGen from SheetRead(sheet, "MinGen"); //= [0 0 0 0]; /*Unit minimum generation (MW)*/
 MarginalC from SheetRead(sheet, "MarginalC"); //= [7.5 6 14 10]; /*unit marginal costs of energy ($/MWh)*/
 
@@ -40,18 +67,41 @@ solar_inc from SheetRead(sheet, "solar_inc");
 wind_inc from SheetRead(sheet, "wind_inc");
 solar_cap_factor from SheetRead(sheet, "solar_cap_factor");
 wind_cap_factor from SheetRead(sheet, "wind_cap_factor");
-
 EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
+
+WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
+SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
+SummerSolarFactor from SheetRead(sheet, "SummerSolarFactor");
+FallSolarFactor from SheetRead(sheet, "FallSolarFactor");
 
 DiscRate from SheetRead(sheet, "DiscRate");
 maxCO2 from SheetRead(sheet, "maxCO2");
 
 SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
-Flow to SheetWrite(sheetResults,"LineFlow");
-Gen to SheetWrite(sheetResults,"Gen");
+WinterPeakFlow to SheetWrite(sheetResults,"WinterPeakLineFlow");
+WinterOffFlow to SheetWrite(sheetResults,"WinterOffLineFlow");
+WinterPeakGen to SheetWrite(sheetResults,"WinterPeakGen");
+WinterOffGen to SheetWrite(sheetResults,"WinterOffGen");
+
+SpringPeakFlow to SheetWrite(sheetResults,"SpringPeakLineFlow");
+SpringOffFlow to SheetWrite(sheetResults,"SpringOffLineFlow");
+SpringPeakGen to SheetWrite(sheetResults,"SpringPeakGen");
+SpringOffGen to SheetWrite(sheetResults,"SpringOffGen");
+
+SummerPeakFlow to SheetWrite(sheetResults,"SummerPeakLineFlow");
+SummerOffFlow to SheetWrite(sheetResults,"SummerOffLineFlow");
+SummerPeakGen to SheetWrite(sheetResults,"SummerPeakGen");
+SummerOffGen to SheetWrite(sheetResults,"SummerOffGen");
+
+FallPeakFlow to SheetWrite(sheetResults,"FallPeakLineFlow");
+FallOffFlow to SheetWrite(sheetResults,"FallOffLineFlow");
+FallPeakGen to SheetWrite(sheetResults,"FallPeakGen");
+FallOffGen to SheetWrite(sheetResults,"FallOffGen");
+
+//on to SheetWrite(sheetResults,"GenOnline"); //Produces a helpful table that more visually indicated when a generator is retired
 objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
-NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
-SO2_total to SheetWrite(sheetResults,"SO2_total");
+//NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
+//SO2_total to SheetWrite(sheetResults,"SO2_total");
 CO2_total to SheetWrite(sheetResults,"CO2_total");
-CH4_total to SheetWrite(sheetResults,"CH4_total");
-N2O_total to SheetWrite(sheetResults,"N2O_total");
+//CH4_total to SheetWrite(sheetResults,"CH4_total");
+//N2O_total to SheetWrite(sheetResults,"N2O_total");
