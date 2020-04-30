@@ -68,6 +68,8 @@ float capex_storage = ...; //Capital Cost of a storage project ($/MW)
 float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
 float bat_eff = ...; //battery round-trip efficiency
 float RampRate [u in Units] = ...; //Ramp rate for ramping constraints
+int SolarBuildTime = ...;
+int WindBuildTime = ...;
 
 float WinterSolarFactor = ...; //Amount of solar capacity available during peak hours in the winter
 float SpringSolarFactor = ...;
@@ -319,7 +321,7 @@ subject to {
     	MaxSolarGen:
     	   //constrains new solar generation to be less than the total installed capacity up to that point
     	   //solar only needs to consider PeakGen, all OffMaxGen set to 0
-    	  new_solar_cap[y] == sum(z in Years : z<=y) bs_sa[z] * solar_inc;
+    	  new_solar_cap[y] == sum(z in Years : z<=y - SolarBuildTime) bs_sa[z] * solar_inc;
     	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
     	  (build_solar[y] == 0) == (bs_sa[y] == 0);
     	  
@@ -336,7 +338,7 @@ subject to {
 	forall(y in Years)
 	  {
 	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
-	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
+	  	  new_wind_cap[y] == sum(z in Years : z<= y - WindBuildTime) bw_wa[z] * wind_inc;
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
     	  (build_wind[y] == 0) == (bw_wa[y] == 0);
     	  

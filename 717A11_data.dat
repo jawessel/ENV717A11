@@ -66,6 +66,8 @@ capex_storage from SheetRead(sheet, "CAPEX_storage");
 opex_storage from SheetRead(sheet, "OPEX_storage");
 bat_eff from SheetRead(sheet, "bat_eff");
 RampRate from SheetRead(sheet, "RampRate");
+SolarBuildTime from SheetRead(sheet, "SolarBuildTime");
+WindBuildTime from SheetRead(sheet, "WindBuildTime");
 
 WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
 SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
@@ -103,3 +105,6 @@ objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function 
 CO2_total to SheetWrite(sheetResults,"CO2_total");
 //CH4_total to SheetWrite(sheetResults,"CH4_total");
 //N2O_total to SheetWrite(sheetResults,"N2O_total");
+
+build_wind to SheetWrite(sheetResults,"BuildWind");
+build_solar to SheetWrite(sheetResults,"BuildSolar");
