@@ -113,13 +113,13 @@ dvar float CO2_total [y in Years];
 //dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
-dvar int solar_additions [y in Years] in 0..10000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
+dvar int solar_additions [y in Years] in 0..100; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
 dvar boolean build_wind [y in Years]; //binary decision for whether or not to build solar in a given year
-dvar int wind_additions [y in Years] in 0..10000; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
+dvar int wind_additions [y in Years] in 0..100; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
 dvar float new_solar_cap [y in Years];
 dvar float new_wind_cap [y in Years];
 dvar boolean build_storage [y in Years];
-dvar float storage_additions [y in Years] in 0..10000;
+dvar int storage_additions [y in Years] in 0..10000;
 dvar float new_storage_cap [y in Years];
 dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints
 dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints
@@ -321,13 +321,13 @@ subject to {
     	   //solar only needs to consider PeakGen, all OffMaxGen set to 0
     	  new_solar_cap[y] == sum(z in Years : z<=y) bs_sa[z] * solar_inc;
     	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
-    	  (build_solar[y] == 0) == (bs_sa[y] == 0);
+    	  (build_solar[y] == 0) => (bs_sa[y] == 0);
     	  
     	  //Need to rework capacity factor for VERs
-    	  WinterPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * WinterSolarFactor;
-    	  SpringPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * SpringSolarFactor;
-    	  SummerPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * SummerSolarFactor;
-    	  FallPeakGen[41][y] <= new_solar_cap[y] * solar_cap_factor * FallSolarFactor;
+    	  WinterPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * WinterSolarFactor;
+    	  SpringPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * SpringSolarFactor;
+    	  SummerPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * SummerSolarFactor;
+    	  FallPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * FallSolarFactor;
     	  
     	  solar_additions[y] >= 0;
     	  bs_sa[y] >= 0;
@@ -338,7 +338,7 @@ subject to {
 	  	MaxWindGen: //constrains new wind generation to be less than the total installed capacity up to that point
 	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
-    	  (build_wind[y] == 0) == (bw_wa[y] == 0);
+    	  (build_wind[y] == 0) => (bw_wa[y] == 0);
     	  
     	  WinterPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  SpringPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
@@ -361,12 +361,12 @@ subject to {
 	  	MaxStorageGen:
 		  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
     	  (build_storage[y] == 1) => (bb_ba[y] == storage_additions[y]);
-    	  (build_storage[y] == 0) == (bb_ba[y] == 0);
+    	  (build_storage[y] == 0) => (bb_ba[y] == 0);
     	  
-    	  WinterPeakGen[43][y] == - new_storage_cap[y];
-    	  SpringPeakGen[43][y] == - new_storage_cap[y];
-    	  SummerPeakGen[43][y] == - new_storage_cap[y];
-    	  FallPeakGen[43][y] == - new_storage_cap[y];
+    	  WinterPeakGen[43][y] >= - new_storage_cap[y];
+    	  SpringPeakGen[43][y] >= - new_storage_cap[y];
+    	  SummerPeakGen[43][y] >= - new_storage_cap[y];
+    	  FallPeakGen[43][y] >= - new_storage_cap[y];
     	  
     	  WinterOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  SpringOffGen[43][y] <= new_storage_cap[y] * bat_eff;
@@ -375,10 +375,10 @@ subject to {
     	  
     	  //constraint may need to be adjusted differently for seasonality
     	  //This constraint may be in conflict with efficiency-related losses -LFI
-    	  sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] == 0; //no free energy from discharging an empty battery
-    	  sum(y in Years) SpringPeakGen[43][y] * bat_eff + SpringOffGen[43][y] == 0;
-    	  sum(y in Years) SummerPeakGen[43][y] * bat_eff + SummerOffGen[43][y] == 0;
-    	  sum(y in Years) FallPeakGen[43][y] * bat_eff + FallOffGen[43][y] == 0;
+    	  sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery
+    	  sum(y in Years) SpringPeakGen[43][y] * bat_eff + SpringOffGen[43][y] <= 0;
+    	  sum(y in Years) SummerPeakGen[43][y] * bat_eff + SummerOffGen[43][y] <= 0;
+    	  sum(y in Years) FallPeakGen[43][y] * bat_eff + FallOffGen[43][y] <= 0;
     	 
     	  storage_additions[y] >= 0;
     	  bb_ba[y] >= 0;
