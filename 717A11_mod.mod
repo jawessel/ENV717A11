@@ -139,14 +139,14 @@ subject to {
 	forall(y in Years)
 	{	//Total cost is calculated here - commented out peak hour production for model efficiency
 	//May want to combine into 1 sum of u in units
-	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) WinterPeakGen[u][y] * MarginalC[u] /* PeakHours*/)
-	    	+ (sum(u in Units) WinterOffGen[u][y] * MarginalC[u] /* OffHours*/)
-	    	+ (sum(u in Units) SpringPeakGen[u][y] * MarginalC[u])
-	    	+ (sum(u in Units) SpringOffGen[u][y] * MarginalC[u])
-	    	+ (sum(u in Units) SummerPeakGen[u][y] * MarginalC[u])
-	    	+ (sum(u in Units) SummerOffGen[u][y] * MarginalC[u])
-	    	+ (sum(u in Units) FallPeakGen[u][y] * MarginalC[u])
-	    	+ (sum(u in Units) FallOffGen[u][y] * MarginalC[u])
+	    objective[y] == (1/((1+DiscRate)^y))*((sum(u in Units) WinterPeakGen[u][y] * MarginalC[u] * on[u,y] /* PeakHours*/)
+	    	+ (sum(u in Units) WinterOffGen[u][y] * MarginalC[u] * on[u,y] /* OffHours*/)
+	    	+ (sum(u in Units) SpringPeakGen[u][y] * MarginalC[u] * on[u,y])
+	    	+ (sum(u in Units) SpringOffGen[u][y] * MarginalC[u] * on[u,y])
+	    	+ (sum(u in Units) SummerPeakGen[u][y] * MarginalC[u] * on[u,y])
+	    	+ (sum(u in Units) SummerOffGen[u][y] * MarginalC[u] * on[u,y])
+	    	+ (sum(u in Units) FallPeakGen[u][y] * MarginalC[u] * on[u,y])
+	    	+ (sum(u in Units) FallOffGen[u][y] * MarginalC[u] * on[u,y])
 	    	+ (capex_solar * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
 	    		+ (capex_wind * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
 	    			+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage))
@@ -322,6 +322,8 @@ subject to {
     	  new_solar_cap[y] == sum(z in Years : z<=y) bs_sa[z] * solar_inc;
     	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
     	  (build_solar[y] == 0) => (bs_sa[y] == 0);
+    	  (build_solar[y] == 0) => (solar_additions[y] == 0);
+    	  (build_solar[y] == 1) => (solar_additions[y] >= 1);
     	  
     	  //Need to rework capacity factor for VERs
     	  WinterPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * WinterSolarFactor;
@@ -339,6 +341,8 @@ subject to {
 	  	  new_wind_cap[y] == sum(z in Years : z<=y) bw_wa[z] * wind_inc;
     	  (build_wind[y] == 1) => (bw_wa[y] == wind_additions[y]);
     	  (build_wind[y] == 0) => (bw_wa[y] == 0);
+    	  (build_wind[y] == 0) => (wind_additions[y] == 0);
+    	  (build_wind[y] == 1) => (wind_additions[y] >= 1);
     	  
     	  WinterPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
     	  SpringPeakGen[42][y] <= new_wind_cap[y] * wind_cap_factor;
@@ -362,6 +366,8 @@ subject to {
 		  new_storage_cap[y] == sum(z in Years : z<=y) bb_ba[z];
     	  (build_storage[y] == 1) => (bb_ba[y] == storage_additions[y]);
     	  (build_storage[y] == 0) => (bb_ba[y] == 0);
+    	  (build_storage[y] == 0) => (storage_additions[y] == 0);
+    	  (build_storage[y] == 1) => (storage_additions[y] >= 1);
     	  
     	  WinterPeakGen[43][y] >= - new_storage_cap[y];
     	  SpringPeakGen[43][y] >= - new_storage_cap[y];
