@@ -65,6 +65,14 @@ capex_storage from SheetRead(sheet, "CAPEX_storage");
 opex_storage from SheetRead(sheet, "OPEX_storage");
 bat_eff from SheetRead(sheet, "bat_eff");
 RampRate from SheetRead(sheet, "RampRate");
+SolarBuildTime from SheetRead(sheet, "SolarBuildTime");
+WindBuildTime from SheetRead(sheet, "WindBuildTime");
+
+ngccBuildTime from SheetRead(sheet, "NGCCBuildTime");
+capex_ngcc from SheetRead(sheet, "CAPEX_ngcc");
+opex_ngcc from SheetRead(sheet, "OPEX_NGCC");
+ngcc_inc from SheetRead(sheet, "ngcc_inc");
+ngcc_cap_factor from SheetRead(sheet, "ngcc_cap_factor");
 
 EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
 fridge_eff_cost from SheetRead(sheet, "fridge_eff_cost");
@@ -103,8 +111,11 @@ FallOffGen to SheetWrite(sheetResults,"FallOffGen");
 
 //on to SheetWrite(sheetResults,"GenOnline"); //Produces a helpful table that more visually indicated when a generator is retired
 objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
-//NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
-//SO2_total to SheetWrite(sheetResults,"SO2_total");
+NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
+SO2_total to SheetWrite(sheetResults,"SO2_total");
 CO2_total to SheetWrite(sheetResults,"CO2_total");
-//CH4_total to SheetWrite(sheetResults,"CH4_total");
-//N2O_total to SheetWrite(sheetResults,"N2O_total");
+CH4_total to SheetWrite(sheetResults,"CH4_total");
+N2O_total to SheetWrite(sheetResults,"N2O_total");
+
+build_wind to SheetWrite(sheetResults,"BuildWind");
+build_solar to SheetWrite(sheetResults,"BuildSolar");
