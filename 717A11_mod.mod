@@ -387,6 +387,7 @@ subject to {
 			
        }    	    
     
+/*
 //Spinning Reserves 
 //Need to have 5% of PV/wind production in spinning reserves 
 //If no PV production, only 3% in spinning reserves  
@@ -395,10 +396,10 @@ subject to {
    	  	  //(var==1) => (Constraint)
   		(on[43,y] == 0)  =>
   		(
-  		sum(u in Units) WinterPeakMaxGen[u]*on[u,y]-WinterPeakGen[u][y]*on[u,y] >= sum(b in Buses) WinterPPDemand[b][y]*1.05 && //if we have solar generation capacity in a given year
-  		sum(u in Units) SpringPeakMaxGen[u]*on[u,y]-SpringPeakGen[u][y]*on[u,y] >= sum(b in Buses) SpringPPDemand[b][y]*1.05 &&
-  		sum(u in Units) SummerPeakMaxGen[u]*on[u,y]-SummerPeakGen[u][y]*on[u,y] >= sum(b in Buses) SummerPPDemand[b][y]*1.05 &&			
-  		sum(u in Units) FallPeakMaxGen[u]*on[u,y]-FallPeakGen[u][y]*on[u,y] >= sum(b in Buses) FallPPDemand[b][y]*1.05
+  		sum(u in Units) (WinterPeakMaxGen[u]*on[u,y]-WinterPeakGen[u][y]*on[u,y]) >= sum(b in Buses) WinterPPDemand[b][y]*1.05 && //if we have solar generation capacity in a given year
+  		sum(u in Units) (SpringPeakMaxGen[u]*on[u,y]-SpringPeakGen[u][y]*on[u,y]) >= sum(b in Buses) SpringPPDemand[b][y]*1.05 &&
+  		sum(u in Units) (SummerPeakMaxGen[u]*on[u,y]-SummerPeakGen[u][y]*on[u,y]) >= sum(b in Buses) SummerPPDemand[b][y]*1.05 &&			
+  		sum(u in Units) (FallPeakMaxGen[u]*on[u,y]-FallPeakGen[u][y]*on[u,y]) >= sum(b in Buses) FallPPDemand[b][y]*1.05
 		)
 	};
 
@@ -413,6 +414,6 @@ subject to {
   		sum(u in Units) FallPeakMaxGen[u]*on[u,y]-FallPeakGen[u][y]*on[u,y] >= sum(b in Buses) FallPPDemand[b][y]*1.03   			   
 		)
 	};
-		
-}
 
+*/		
+}
