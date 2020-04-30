@@ -375,10 +375,10 @@ subject to {
     	  
     	  //constraint may need to be adjusted differently for seasonality
     	  //This constraint may be in conflict with efficiency-related losses -LFI
-    	  sum(y in Years) WinterPeakGen[43][y] + WinterOffGen[43][y] == 0; //no free energy from discharging an empty battery
-    	  sum(y in Years) SpringPeakGen[43][y] + SpringOffGen[43][y] == 0;
-    	  sum(y in Years) SummerPeakGen[43][y] + SummerOffGen[43][y] == 0;
-    	  sum(y in Years) FallPeakGen[43][y] + FallOffGen[43][y] == 0;
+    	  sum(y in Years) WinterPeakGen[43][y] + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery
+    	  sum(y in Years) SpringPeakGen[43][y] + SpringOffGen[43][y] <= 0;
+    	  sum(y in Years) SummerPeakGen[43][y] + SummerOffGen[43][y] <= 0;
+    	  sum(y in Years) FallPeakGen[43][y] + FallOffGen[43][y] <= 0;
     	 
     	  storage_additions[y] >= 0;
     	  bb_ba[y] >= 0;
