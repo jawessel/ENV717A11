@@ -67,7 +67,7 @@ float wind_cap_factor = ...; //How much of the installed wind capacity will be g
 float capex_storage = ...; //Capital Cost of a storage project ($/MW)
 float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
 float bat_eff = ...; //battery round-trip efficiency
-float RampRate [u in Units] = ...; //Ramp rate for ramping constraints
+float RampRate [Units] = ...; //Ramp rate for ramping constraints
 
 float WinterSolarFactor = ...; //Amount of solar capacity available during peak hours in the winter
 float SpringSolarFactor = ...;
@@ -75,6 +75,10 @@ float SummerSolarFactor = ...;
 float FallSolarFactor = ...;
 
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
+float fridge_eff_cost = ...; //non-discounted annual cost of refrigerator energy efficiency (program is either implemented for every year or not at all)
+float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in refrigerator energy efficiency program (MW/year)
+float led_eff_cost = ...; //non-discounted annual cost of LED energy efficiency (program is either implemented for every year or not at all)
+float led_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in LED energy efficiency program (MW/year)
 
 //Optimization Parameters
 float DiscRate = ...; //Discount Rate for NPV calculations
@@ -126,6 +130,8 @@ dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraint
 dvar int bb_ba [y in Years];
 
 dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
+dvar boolean fridge_eff_decision; //binary decision for whether or not to invest in refrigerator energy efficiency
+dvar boolean led_eff_decision; //binary decision for whether or not to invest in LED energy efficiency
 
 //Objective Function
 minimize 
@@ -149,8 +155,10 @@ subject to {
 	    	+ (sum(u in Units) FallOffGen[u][y] * MarginalC[u] * on[u,y])
 	    	+ (capex_solar * bs_sa[y]) + (new_solar_cap[y] * opex_solar)
 	    		+ (capex_wind * bw_wa[y]) + (new_wind_cap[y] * opex_wind)
-	    			+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage))
-	    				+ (EV_subsidy_cost*EV_subsidy_decision);
+	    			+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage)
+	    				+ (fridge_eff_cost * fridge_eff_decision))
+	    					+ (led_eff_cost * led_eff_decision)
+	    						+ (EV_subsidy_cost*EV_subsidy_decision);
     }	   
     
     forall(y in Years) //Emissions are summed up for output file
@@ -170,14 +178,14 @@ subject to {
    TotalPowerBalance:
     forall(y in Years) 
     { 
-        sum(u in Units) WinterPeakGen[u][y] == sum(b in Buses) WinterPeakDemand[b][y];
-        sum(u in Units) WinterOffGen[u][y] == sum(b in Buses) WinterOffDemand[b][y];
-        sum(u in Units) SpringPeakGen[u][y] == sum(b in Buses) SpringPeakDemand[b][y];
-        sum(u in Units) SpringOffGen[u][y] == sum(b in Buses) SpringOffDemand[b][y];
-        sum(u in Units) SummerPeakGen[u][y] == sum(b in Buses) SummerPeakDemand[b][y];
-        sum(u in Units) SummerOffGen[u][y] == sum(b in Buses) SummerOffDemand[b][y];
-        sum(u in Units) FallPeakGen[u][y] == sum(b in Buses) FallPeakDemand[b][y];
-        sum(u in Units) FallOffGen[u][y] == sum(b in Buses) FallOffDemand[b][y];
+        sum(u in Units) WinterPeakGen[u][y] == sum(b in Buses) (WinterPeakDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) WinterOffGen[u][y] == sum(b in Buses) (WinterOffDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) SpringPeakGen[u][y] == sum(b in Buses) (SpringPeakDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) SpringOffGen[u][y] == sum(b in Buses) (SpringOffDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) SummerPeakGen[u][y] == sum(b in Buses) (SummerPeakDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) SummerOffGen[u][y] == sum(b in Buses) (SummerOffDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) FallPeakGen[u][y] == sum(b in Buses) (FallPeakDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
+        sum(u in Units) FallOffGen[u][y] == sum(b in Buses) (FallOffDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision);
         
         //New Off-Peak balance that only looks at the possibility of generating
         //sum(u in Units) OffMaxGen[u] * on[u, y] >= sum(b in Buses) OffDemand[b][y];
@@ -193,49 +201,57 @@ subject to {
     	  sum(l in Lines) LineToBus[b][l]*WinterPeakFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*WinterPeakFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*WinterPeakGen[u,y] 
-      	  - WinterPeakDemand[b,y] >= 0;
+      	  - WinterPeakDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Off Peak
       	  sum(l in Lines) LineToBus[b][l]*WinterOffFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*WinterOffFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*WinterOffGen[u,y] 
-      	  - WinterOffDemand[b,y] >= 0;
+      	  - WinterOffDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Peak 
     	  sum(l in Lines) LineToBus[b][l]*SpringPeakFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*SpringPeakFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*SpringPeakGen[u,y] 
-      	  - SpringPeakDemand[b,y] >= 0;
+      	  - SpringPeakDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Off Peak
       	  sum(l in Lines) LineToBus[b][l]*SpringOffFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*SpringOffFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*SpringOffGen[u,y] 
-      	  - SpringOffDemand[b,y] >= 0;
+      	  - SpringOffDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Peak 
     	  sum(l in Lines) LineToBus[b][l]*SummerPeakFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*SummerPeakFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*SummerPeakGen[u,y] 
-      	  - SummerPeakDemand[b,y] >= 0;
+      	  - SummerPeakDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Off Peak
       	  sum(l in Lines) LineToBus[b][l]*SummerOffFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*SummerOffFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*SummerOffGen[u,y] 
-      	  - SummerOffDemand[b,y] >= 0;
+      	  - SummerOffDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Peak 
     	  sum(l in Lines) LineToBus[b][l]*FallPeakFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*FallPeakFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*FallPeakGen[u,y] 
-      	  - FallPeakDemand[b,y] >= 0;
+      	  - FallPeakDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
       	  
       	  //Off Peak
       	  sum(l in Lines) LineToBus[b][l]*FallOffFlow[l,y] 
       	  - sum(l in Lines) LineFromBus[b][l]*FallOffFlow[l,y] 
       	  +sum(u in Units) UnitsByBus[b][u]*FallOffGen[u,y] 
-      	  - FallOffDemand[b,y] >= 0;
+      	  - FallOffDemand[b,y]
+      	  + fridge_eff_benefit[b][y] * fridge_eff_decision + led_eff_benefit[b][y] * led_eff_decision >= 0;
     	};
     };        	
     	
@@ -270,17 +286,22 @@ subject to {
     }
     
     
-    /* Currently ignores minimum generation constraints to avoid issues with unnecessary dispatch in seasons with lower loads
-    forall(y in Years)
-    {    
-    	forall(u in Units)
-      	  PeakMinGeneration:
-    	    PeakGen[u,y] >= MinGen[u]*on[u,y];
-    	    
-    	//forall(u in Units)
-      	//  OffMinGeneration:
-    	//    OffGen[u,y] >= MinGen[u]* on[u,y];
-    } */   	    	
+    //Currently ignores minimum generation constraints to avoid issues with unnecessary dispatch in seasons with lower loads
+//    forall(y in Years)
+//    {    
+//    	forall(u in Units)
+//    	  {
+//      	    PeakMinGeneration:
+//    	      WinterPeakGen[u,y] >= MinGen[u]*on[u,y];
+//    	      WinterOffGen[u,y] >= MinGen[u]*on[u,y];
+//    	      SpringPeakGen[u,y] >= MinGen[u]*on[u,y];
+//    	      SpringOffGen[u,y] >= MinGen[u]*on[u,y];
+//    	      SummerPeakGen[u,y] >= MinGen[u]*on[u,y];
+//    	      SummerOffGen[u,y] >= MinGen[u]*on[u,y];
+//    	      FallPeakGen[u,y] >= MinGen[u]*on[u,y];
+//    	      FallOffGen[u,y] >= MinGen[u]*on[u,y];
+//          }    	      
+//    }   	    	
 
 //Transmission Lines
 	MaxFlow:
@@ -411,12 +432,11 @@ subject to {
 	  {
 		CO2_emissions:
 	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
-	  	  //CO2_total[y] <= CO2_total[y-1] * 0.8; //huge yearly reduction in emissions stops model from building all necessary renewables in the very last year
       }	  
     
     
     //EmissionsGoals:
-    	//CO2_total[26] == 0; //uncomment for carbon-free electricity
+    	//CO2_total[26] <= 0; //uncomment for carbon-free electricity
     	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
     	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);

@@ -61,11 +61,16 @@ solar_inc from SheetRead(sheet, "solar_inc");
 wind_inc from SheetRead(sheet, "wind_inc");
 solar_cap_factor from SheetRead(sheet, "solar_cap_factor");
 wind_cap_factor from SheetRead(sheet, "wind_cap_factor");
-EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
 capex_storage from SheetRead(sheet, "CAPEX_storage");
 opex_storage from SheetRead(sheet, "OPEX_storage");
 bat_eff from SheetRead(sheet, "bat_eff");
 RampRate from SheetRead(sheet, "RampRate");
+
+EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
+fridge_eff_cost from SheetRead(sheet, "fridge_eff_cost");
+fridge_eff_benefit from SheetRead(sheet, "fridge_eff_benefit");
+led_eff_cost from SheetRead(sheet, "led_eff_cost");
+led_eff_benefit from SheetRead(sheet, "led_eff_benefit");
 
 WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
 SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
@@ -75,7 +80,7 @@ FallSolarFactor from SheetRead(sheet, "FallSolarFactor");
 DiscRate from SheetRead(sheet, "DiscRate");
 maxCO2 from SheetRead(sheet, "maxCO2");
 
-SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadshet to write results
+SheetConnection sheetResults("717A11_output.xlsx"); //Opens or creates a spreadsheet to write results
 WinterPeakFlow to SheetWrite(sheetResults,"WinterPeakLineFlow");
 WinterOffFlow to SheetWrite(sheetResults,"WinterOffLineFlow");
 WinterPeakGen to SheetWrite(sheetResults,"WinterPeakGen");
