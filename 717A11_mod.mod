@@ -355,6 +355,7 @@ subject to {
 	  }
 
 //Storage Constraints
+	/*
 	forall(y in Years)
 	  {	  	
 	  	MaxStorageGen:
@@ -383,8 +384,10 @@ subject to {
     	  bb_ba[y] >= 0;
     	  new_storage_cap[y] <= 0.2 * new_solar_cap[y]; //storage capacity maxes out at 20% of new solar capacity
 	  }
+	  */
 
 //Ramping Constraint (only upheld for the peak and off-peak demand hours for each season)
+	/*
 	forall(y in Years)
 	  {
 		forall(u in Units)
@@ -395,15 +398,15 @@ subject to {
 	      FallPeakGen[u,y] - FallOffGen[u,y] <= RampRate[u] * on[u,y];
 	    };
 	  }
-    
+    */
 
 //Emissions
 	//Simplified emissions constraint - more efficient in solving than the 600lb average
 	forall(y in Years: y>1)
 	  {
 		CO2_emissions:
-	  	  //CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
-	  	  CO2_total[y] <= CO2_total[y-1] * 0.8; //huge yearly reduction in emissions stops model from building all necessary renewables in the very last year
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
+	  	  //CO2_total[y] <= CO2_total[y-1] * 0.8; //huge yearly reduction in emissions stops model from building all necessary renewables in the very last year
       }	  
     
     
