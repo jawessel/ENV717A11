@@ -566,15 +566,8 @@ subject to {
 	  	  //((CO2_total[y] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727) + (CH4_total[y] * 0.74868) <= (((CO2_total[y-1] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727 * 0.9) + (CH4_total[y-1] * 0.74868 * 0.9)); //reduce carbon emissions annually to get to zero by 2045
 	  	  
       }
-      CarbonFree:
-      	CO2_total[26] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision) <= 0; //carbon-free goal (excluding transportation) 
-    
-    //EmissionsGoals:
-    	//CO2_total[26] <= 0; //uncomment for carbon-free electricity
-    	
-    	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
-    	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
-    	 
+      //CarbonFree:
+      	//CO2_total[26] <= (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) + (vehicle_CO2_subsidy*EV_subsidy_decision); //carbon-free goal (excluding transportation) 
   
 //Reserves 
 //Need to have 15% more generation capacity available than the peak peak demand 
@@ -589,7 +582,6 @@ subject to {
  			sum(u in Units: u <= 40) FallPeakMaxGen[u] + new_solar_cap[y]  * FallSolarFactor + new_wind_cap[y] * wind_cap_factor + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
 			
     }    	    
-    
 
 //Spinning Reserves 
 //Need to have 5% of PV/wind production in spinning reserves 
