@@ -95,11 +95,6 @@ float SpringSolarFactor = ...;
 float SummerSolarFactor = ...;
 float FallSolarFactor = ...;
 
-float WinterSolarFactor = ...; //Amount of solar capacity available during peak hours in the winter
-float SpringSolarFactor = ...;
-float SummerSolarFactor = ...;
-float FallSolarFactor = ...;
-
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 float fridge_eff_cost = ...; //non-discounted annual cost of refrigerator energy efficiency (program is either implemented for every year or not at all)
 float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in refrigerator energy efficiency program (MW/year)
@@ -142,11 +137,11 @@ dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity
 dvar boolean on[u in Units, y in Years];
 
 dvar float objective [y in Years]; //objective function set as a decision variable
-//dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
-//dvar float SO2_total [y in Years];
+dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
+dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
-//dvar float CH4_total [y in Years];
-//dvar float N2O_total [y in Years];
+dvar float CH4_total [y in Years];
+dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int solar_additions [y in Years] in 0..100; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
