@@ -113,23 +113,23 @@ float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
-dvar float+ WinterPeakGen [u in Units, y in Years] in 0..WinterPeakMaxGen[u]; //Peak Generation for each Unit (MW)
+dvar float+ WinterPeakGen [u in Units, y in Years] in -10000..WinterPeakMaxGen[u]; //Peak Generation for each Unit (MW)
 //Need to change the minimum of PeakGen to allow batteries to charge
 dvar float+ WinterOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float WinterPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float WinterOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-dvar float+ SpringPeakGen [u in Units, y in Years] in 0..SpringPeakMaxGen[u];
+dvar float+ SpringPeakGen [u in Units, y in Years] in -10000..SpringPeakMaxGen[u];
 dvar float+ SpringOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float SpringPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float SpringOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)dvar float+ SummerPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
 
-dvar float+ SummerPeakGen [u in Units, y in Years] in 0..SummerPeakMaxGen[u];
+dvar float+ SummerPeakGen [u in Units, y in Years] in -10000..SummerPeakMaxGen[u];
 dvar float+ SummerOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float SummerPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float SummerOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-dvar float+ FallPeakGen [u in Units, y in Years] in 0..FallPeakMaxGen[u];
+dvar float+ FallPeakGen [u in Units, y in Years] in -10000..FallPeakMaxGen[u];
 dvar float+ FallOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float FallPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
@@ -383,6 +383,32 @@ subject to {
        }    	    
     }
     
+    //Udated to prevent all but storage from going negative
+    forall(y in Years)
+    {    
+    	forall(u in 1..42)
+    	  {
+      	    PeakMinGeneration:
+    	      WinterPeakGen[u,y] >= 0;
+    	      WinterOffGen[u,y] >= 0;
+    	      SpringPeakGen[u,y] >= 0;
+    	      SpringOffGen[u,y] >= 0;
+    	      SummerPeakGen[u,y] >= 0;
+    	      SummerOffGen[u,y] >= 0;
+    	      FallPeakGen[u,y] >= 0;
+    	      FallOffGen[u,y] >= 0;
+          }
+          NewNGCCMin:
+          	  WinterPeakGen[44,y] >= 0;
+    	      WinterOffGen[44,y] >= 0;
+    	      SpringPeakGen[44,y] >= 0;
+    	      SpringOffGen[44,y] >= 0;
+    	      SummerPeakGen[44,y] >= 0;
+    	      SummerOffGen[44,y] >= 0;
+    	      FallPeakGen[44,y] >= 0;
+    	      FallOffGen[44,y] >= 0;    	      
+    }   
+    
     
     //Currently ignores minimum generation constraints to avoid issues with unnecessary dispatch in seasons with lower loads
 //    forall(y in Years)
@@ -522,10 +548,10 @@ subject to {
     	  //SummerPeakGen[43][y] == 0;
     	  //FallPeakGen[43][y] == 0;
     	  
-    	  WinterPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
-    	  SpringPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
-    	  SummerPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
-    	  FallPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
+    	  WinterPeakGen[43][y] == - new_storage_cap[y] * 0.1;
+    	  SpringPeakGen[43][y] == - new_storage_cap[y] * 0.1;
+    	  SummerPeakGen[43][y] == - new_storage_cap[y] * 0.1;
+    	  FallPeakGen[43][y] == - new_storage_cap[y] * 0.1;
     	  
     	  WinterOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  SpringOffGen[43][y] <= new_storage_cap[y] * bat_eff;
