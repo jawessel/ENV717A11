@@ -574,7 +574,13 @@ subject to {
     	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
     	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
-    	 
+
+//GHG Emissions Constraint    	 
+	forall(y in Years: y>1)
+	  {
+		GHG_emissions:
+	  	  (CO2_total[y]+CH4_total[y]*25+N2O_total[y]*298) <= (CO2_total[y-1]+CH4_total[y-1]*25+N2O_total[y-1]*298) * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)  	  
+      }	
   
 //Reserves 
 //Need to have 15% more generation capacity available than the peak peak demand 
