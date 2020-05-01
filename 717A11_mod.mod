@@ -579,7 +579,7 @@ subject to {
 	forall(y in Years: y>1)
 	  {
 		GHG_emissions:
-	  	  (CO2_total[y]+CH4_total[y]*25+N2O_total[y]*298) <= (CO2_total[y-1]+CH4_total[y-1]*25+N2O_total[y-1]*298) * 0.96401; //ends in the final year as 40% of the original amount (60% decrease)  	  
+	  	  (CO2_total[y]+CH4_total[y]*25+N2O_total[y]*298) <= (CO2_total[y-1]+CH4_total[y-1]*25+N2O_total[y-1]*298) * 0.9640119; //ends in the final year as 40% of the original amount (60% decrease)  	  
       }	
   
 //Reserves 
