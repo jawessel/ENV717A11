@@ -82,6 +82,9 @@ ngcc_inc from SheetRead(sheet, "ngcc_inc");
 ngcc_cap_factor from SheetRead(sheet, "ngcc_cap_factor");
 
 //EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
+EV_subsidy_decision from SheetRead(sheet, "EV_subsidy_decision");
+vehicle_CO2_no_subsidy from SheetRead(sheet, "vehicle_CO2_no_subsidy");
+vehicle_CO2_subsidy from SheetRead(sheet, "vehicle_CO2_subsidy");
 fridge_eff_cost from SheetRead(sheet, "fridge_eff_cost");
 fridge_eff_benefit from SheetRead(sheet, "fridge_eff_benefit");
 led_eff_cost from SheetRead(sheet, "led_eff_cost");
@@ -129,3 +132,4 @@ SO2_total to SheetWrite(sheetResults,"SO2_total");
 CO2_total to SheetWrite(sheetResults,"CO2_total");
 CH4_total to SheetWrite(sheetResults,"CH4_total");
 N2O_total to SheetWrite(sheetResults,"N2O_total");
+
