@@ -117,7 +117,6 @@ float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
 dvar float+ WinterPeakGen [u in Units, y in Years] in -10000..WinterPeakMaxGen[u]; //Peak Generation for each Unit (MW)
-//Need to change the minimum of PeakGen to allow batteries to charge
 dvar float+ WinterOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
 dvar float WinterPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float WinterOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
@@ -125,7 +124,7 @@ dvar float WinterOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapaci
 dvar float+ SpringPeakGen [u in Units, y in Years] in -10000..SpringPeakMaxGen[u];
 dvar float+ SpringOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
 dvar float SpringPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
-dvar float SpringOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)dvar float+ SummerPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float SpringOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
 dvar float+ SummerPeakGen [u in Units, y in Years] in -10000..SummerPeakMaxGen[u];
 dvar float+ SummerOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
@@ -148,7 +147,7 @@ dvar boolean onFallPk[u in Units, y in Years];
 dvar boolean onFallOffPk[u in Units, y in Years];
 
 dvar float objective [y in Years]; //objective function set as a decision variable
-dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
+dvar float NOx_total [y in Years]; //Emissions decision variables
 dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
 dvar float CH4_total [y in Years];
@@ -411,21 +410,20 @@ subject to {
     	      FallOffGen[44,y] >= 0;    	      
     }   
     
-    
-    //Currently ignores minimum generation constraints to avoid issues with unnecessary dispatch in seasons with lower loads
+	//Old MinGen constraint
 //    forall(y in Years)
 //    {    
-//    	forall(u in Units)
+//    	forall(u in ConvUnits)
 //    	  {
-//      	    PeakMinGeneration:
-//    	      WinterPeakGen[u,y] >= MinGen[u]*on[u,y];
-//    	      WinterOffGen[u,y] >= MinGen[u]*on[u,y];
-//    	      SpringPeakGen[u,y] >= MinGen[u]*on[u,y];
-//    	      SpringOffGen[u,y] >= MinGen[u]*on[u,y];
-//    	      SummerPeakGen[u,y] >= MinGen[u]*on[u,y];
-//    	      SummerOffGen[u,y] >= MinGen[u]*on[u,y];
-//    	      FallPeakGen[u,y] >= MinGen[u]*on[u,y];
-//    	      FallOffGen[u,y] >= MinGen[u]*on[u,y];
+//      	    MinGeneration:
+//    	      WinterPeakGen[u,y] >= MinGen[u]*onWinPk[u,y];
+//    	      WinterOffGen[u,y] >= MinGen[u]*onWinOffPk[u,y];
+//    	      SpringPeakGen[u,y] >= MinGen[u]*onSprPk[u,y];
+//    	      SpringOffGen[u,y] >= MinGen[u]*onSprOffPk[u,y];
+//    	      SummerPeakGen[u,y] >= MinGen[u]*onSumPk[u,y];
+//    	      SummerOffGen[u,y] >= MinGen[u]*onSumOffPk[u,y];
+//    	      FallPeakGen[u,y] >= MinGen[u]*onFallPk[u,y];
+//    	      FallOffGen[u,y] >= MinGen[u]*onFallOffPk[u,y];
 //          }    	      
 //    }   	    	
 
@@ -464,7 +462,6 @@ subject to {
     forall(y in Years)
 	  {   
     	MaxNGCCGen:
-    	//not currently choosing to build NGCC - likely need to add emissions and ramping ability
     	  new_ngcc_cap[y] == sum(z in Years : z<=y - ngccBuildTime) bn_na[z] * ngcc_inc;
     	  (build_ngcc[y] == 1) => (bn_na[y] == ngcc_additions[y]);
     	  (build_ngcc[y] == 0) == (bn_na[y] == 0);
@@ -494,7 +491,6 @@ subject to {
     	  (build_solar[y] == 0) => (solar_additions[y] == 0);
     	  (build_solar[y] == 1) => (solar_additions[y] >= 1);
     	  
-    	  //Need to rework capacity factor for VERs
     	  WinterPeakGen[41][y] == new_solar_cap[y] * WinterSolarFactor;
     	  SpringPeakGen[41][y] == new_solar_cap[y] * SpringSolarFactor;
     	  SummerPeakGen[41][y] == new_solar_cap[y] * SummerSolarFactor;
@@ -550,6 +546,7 @@ subject to {
     	  SummerPeakGen[43][y] == 0;
     	  FallPeakGen[43][y] == 0;
     	  
+    	  //Obsolete battery charging constraints
     	  //WinterPeakGen[43][y] == - new_storage_cap[y] * 0.1;
     	  //SpringPeakGen[43][y] == - new_storage_cap[y] * 0.1;
     	  //SummerPeakGen[43][y] == - new_storage_cap[y] * 0.1;
@@ -560,9 +557,7 @@ subject to {
     	  SummerOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  FallOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  
-    	  //constraint may need to be adjusted differently for seasonality
-    	  //This constraint may be in conflict with efficiency-related losses -LFI
-    	  //sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery
+    	  //sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery (obsolete)
     	  //sum(y in Years) SpringPeakGen[43][y] * bat_eff + SpringOffGen[43][y] <= 0;
     	  //sum(y in Years) SummerPeakGen[43][y] * bat_eff + SummerOffGen[43][y] <= 0;
     	  //sum(y in Years) FallPeakGen[43][y] * bat_eff + FallOffGen[43][y] <= 0;
@@ -573,7 +568,7 @@ subject to {
 	  }
 	  
 
-//Ramping Constraint (only upheld for the peak and off-peak demand hours for each season)
+//Ramping Constraint (only upheld between the peak and off-peak demand hours for each season)
 	forall(y in Years)
 	  {
 		forall(u in Units)
@@ -586,25 +581,21 @@ subject to {
 	  }
     
 //Emissions
-	//Simplified emissions constraint - more efficient in solving than the 600lb average
+
 //	forall(y in Years: y>1)
 //	  {
 //		CO2_emissions:
-//	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
-//	  	  
-//	  	  
-//	  	  //Carbon-free constraint, must run both of the next two lines
-//	  	  //((CO2_total[y] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727) + (CH4_total[y] * 0.74868) <= (((CO2_total[y-1] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727 * 0.9) + (CH4_total[y-1] * 0.74868 * 0.9)); //reduce carbon emissions annually to get to zero by 2045
-//	  	  
-//      }
+//	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)  
+//    }
+
+
       //CarbonFree:
-      	//CO2_total[26] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision) <= 0; //carbon-free goal (excluding transportation) 
-    
-    //EmissionsGoals:
-    	//CO2_total[26] <= 0; //uncomment for carbon-free electricity
-    	
-    	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
-    	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
+//      forall(y in Years)
+//      {
+//         //Carbon-free constraint, must run both of the next two lines
+//		   //((CO2_total[y] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727) + (CH4_total[y] * 0.74868) <= (((CO2_total[y-1] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727 * 0.9) + (CH4_total[y-1] * 0.74868 * 0.9)); //reduce carbon emissions annually to get to zero by 2045
+//      }
+//      	//CO2_total[26] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision) <= 0; //carbon-free goal (excluding transportation) 
 
 //GHG Emissions Constraint    	 
 	forall(y in Years: y>1)

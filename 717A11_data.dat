@@ -125,7 +125,6 @@ FallOffFlow to SheetWrite(sheetResults,"FallOffLineFlow");
 FallPeakGen to SheetWrite(sheetResults,"FallPeakGen");
 FallOffGen to SheetWrite(sheetResults,"FallOffGen");
 
-//on to SheetWrite(sheetResults,"GenOnline"); //Produces a helpful table that more visually indicated when a generator is retired
 objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
 NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
 SO2_total to SheetWrite(sheetResults,"SO2_total");
