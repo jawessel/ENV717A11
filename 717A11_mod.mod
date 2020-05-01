@@ -155,16 +155,16 @@ dvar float CH4_total [y in Years];
 dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
-dvar int solar_additions [y in Years] in 0..100; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
+dvar int solar_additions [y in Years] in 0..1000000; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
 dvar boolean build_wind [y in Years]; //binary decision for whether or not to build solar in a given year
-dvar int wind_additions [y in Years] in 0..10000; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
+dvar int wind_additions [y in Years] in 0..1000000; //number of wind modules that will be built (multiplied by wind_inc to get total capacity)
 dvar boolean build_ngcc [y in Years]; //binary decision for whether or not to build NGCC generation in a given year
-dvar int ngcc_additions [y in Years] in 0..10000; //number of NGCC modules that will be built (multiplied by solar_inc to get total capacity)
+dvar int ngcc_additions [y in Years] in 0..1000000; //number of NGCC modules that will be built (multiplied by solar_inc to get total capacity)
 dvar float new_solar_cap [y in Years];
 dvar float new_wind_cap [y in Years];
 dvar float new_ngcc_cap [y in Years];
 dvar boolean build_storage [y in Years];
-dvar int storage_additions [y in Years] in 0..10000;
+dvar int storage_additions [y in Years] in 0..1000000;
 dvar float new_storage_cap [y in Years];
 dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints (solar)
 dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints (wind)
