@@ -3,6 +3,11 @@
  * Author: jawessel
  * Creation Date: Apr 16, 2020 at 3:57:31 PM
  *********************************************/
+/*********************************************
+ * OPL 12.10.0.0 Model
+ * Author: jawessel
+ * Creation Date: Apr 16, 2020 at 3:57:31 PM
+ *********************************************/
 //Simulate NicISO Power System to calculate LMPs, diagnose system deficiencies, and offer direction for system improvements.
 
 int NumBuses = ...; //Number of buses
@@ -34,6 +39,11 @@ float SummerPeakHours = ...;
 float SummerOffHours = ...;
 float FallPeakHours = ...;
 float FallOffHours = ...;
+
+float WinterPPDemand [Buses][Years] = ...;
+float SpringPPDemand [Buses][Years] = ...;
+float SummerPPDemand [Buses][Years] = ...;
+float FallPPDemand [Buses][Years] = ...;
 
 int LineToBus [Buses][Lines]=...; //Define lines by their start and end points
 int LineFromBus [Buses][Lines]=...;
@@ -85,6 +95,11 @@ float SpringSolarFactor = ...;
 float SummerSolarFactor = ...;
 float FallSolarFactor = ...;
 
+float WinterSolarFactor = ...; //Amount of solar capacity available during peak hours in the winter
+float SpringSolarFactor = ...;
+float SummerSolarFactor = ...;
+float FallSolarFactor = ...;
+
 float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 float fridge_eff_cost = ...; //non-discounted annual cost of refrigerator energy efficiency (program is either implemented for every year or not at all)
 float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in refrigerator energy efficiency program (MW/year)
@@ -127,11 +142,11 @@ dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity
 dvar boolean on[u in Units, y in Years];
 
 dvar float objective [y in Years]; //objective function set as a decision variable
-dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
-dvar float SO2_total [y in Years];
+//dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
+//dvar float SO2_total [y in Years];
 dvar float CO2_total [y in Years];
-dvar float CH4_total [y in Years];
-dvar float N2O_total [y in Years];
+//dvar float CH4_total [y in Years];
+//dvar float N2O_total [y in Years];
 
 dvar boolean build_solar [y in Years]; //binary decision for whether or not to build solar in a given year
 dvar int solar_additions [y in Years] in 0..100; //number of solar modules that will be built (multiplied by solar_inc to get total capacity)
@@ -524,7 +539,6 @@ subject to {
 	    };
 	  }
     
-
 //Emissions
 	//Simplified emissions constraint - more efficient in solving than the 600lb average
 	forall(y in Years: y>1)
@@ -539,4 +553,48 @@ subject to {
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
     	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
     	 
-}  
+  
+//Reserves 
+//Need to have 15% more generation capacity available than the peak peak demand 
+	forall(y in Years)
+	{
+ 			sum(u in Units) WinterPeakMaxGen[u]*on[u,y] >= sum(b in Buses) WinterPPDemand[b][y]*1.15;
+ 			
+ 			sum(u in Units) SpringPeakMaxGen[u]*on[u,y] >= sum(b in Buses) SpringPPDemand[b][y]*1.15;
+ 			
+ 			sum(u in Units) SummerPeakMaxGen[u]*on[u,y] >= sum(b in Buses) SummerPPDemand[b][y]*1.15;
+ 			
+ 			sum(u in Units) FallPeakMaxGen[u]*on[u,y] >= sum(b in Buses) FallPPDemand[b][y]*1.15;
+			
+       }    	    
+    
+/*
+//Spinning Reserves 
+//Need to have 5% of PV/wind production in spinning reserves 
+//If no PV production, only 3% in spinning reserves  
+    forall(y in Years)
+	{
+   	  	  //(var==1) => (Constraint)
+  		(on[43,y] == 0)  =>
+  		(
+  		sum(u in Units) (WinterPeakMaxGen[u]*on[u,y]-WinterPeakGen[u][y]*on[u,y]) >= sum(b in Buses) WinterPPDemand[b][y]*1.05 && //if we have solar generation capacity in a given year
+  		sum(u in Units) (SpringPeakMaxGen[u]*on[u,y]-SpringPeakGen[u][y]*on[u,y]) >= sum(b in Buses) SpringPPDemand[b][y]*1.05 &&
+  		sum(u in Units) (SummerPeakMaxGen[u]*on[u,y]-SummerPeakGen[u][y]*on[u,y]) >= sum(b in Buses) SummerPPDemand[b][y]*1.05 &&			
+  		sum(u in Units) (FallPeakMaxGen[u]*on[u,y]-FallPeakGen[u][y]*on[u,y]) >= sum(b in Buses) FallPPDemand[b][y]*1.05
+		)
+	};
+
+    forall(y in Years)
+	{
+   	  	  //(var==1) => (Constraint)
+  		(on[43,y] == 0)  =>
+  		(
+  		sum(u in Units) WinterPeakMaxGen[u]*on[u,y]-WinterPeakGen[u][y]*on[u,y] >= sum(b in Buses) WinterPPDemand[b][y]*1.03 && //if we have solar generation capacity in a given year
+  		sum(u in Units) SpringPeakMaxGen[u]*on[u,y]-SpringPeakGen[u][y]*on[u,y] >= sum(b in Buses) SpringPPDemand[b][y]*1.03 &&
+  		sum(u in Units) SummerPeakMaxGen[u]*on[u,y]-SummerPeakGen[u][y]*on[u,y] >= sum(b in Buses) SummerPPDemand[b][y]*1.03 &&  			
+  		sum(u in Units) FallPeakMaxGen[u]*on[u,y]-FallPeakGen[u][y]*on[u,y] >= sum(b in Buses) FallPPDemand[b][y]*1.03   			   
+		)
+	};
+
+*/		
+}

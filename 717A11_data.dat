@@ -1,10 +1,10 @@
-/*********************************************
+ /*********************************************
  * OPL 12.10.0.0 Data
  * Author: jawessel
  * Creation Date: Apr 16, 2020 at 3:57:31 PM
  *********************************************/
 
- //Simulate NicISO Power System to calculate LMPs, diagnose system deficiencies, and offer direction for system improvements.
+//Simulate NicISO Power System to calculate LMPs, diagnose system deficiencies, and offer direction for system improvements.
 
 SheetConnection sheet("717A11_data_in.xlsx");	//Opens the spreadsheet with the data to be read
 //All the names in "" are NamedRanges in Excel
@@ -22,6 +22,12 @@ SummerPeakDemand from SheetRead(sheet, "SummerDemandPeak"); /*Demand (MW)*/
 SummerOffDemand from SheetRead(sheet, "SummerDemandOff"); /*Demand (MW)*/
 FallPeakDemand from SheetRead(sheet, "FallDemandPeak"); /*Demand (MW)*/
 FallOffDemand from SheetRead(sheet, "FallDemandOff"); /*Demand (MW)*/
+
+WinterPPDemand from SheetRead(sheet, "WinterPPDemand"); /*peak winter demand (MW)*/
+SpringPPDemand from SheetRead(sheet, "SpringPPDemand"); /*peak winter demand (MW)*/
+SummerPPDemand from SheetRead(sheet, "SummerPPDemand"); /*peak winter demand (MW)*/
+FallPPDemand from SheetRead(sheet, "FallPPDemand"); /*peak winter demand (MW)*/
+
 
 WinterPeakHours from SheetRead(sheet, "WinterPeakHours"); 
 WinterOffHours from SheetRead(sheet, "WinterOffHours");
@@ -92,6 +98,11 @@ SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
 SummerSolarFactor from SheetRead(sheet, "SummerSolarFactor");
 FallSolarFactor from SheetRead(sheet, "FallSolarFactor");
 
+WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
+SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
+SummerSolarFactor from SheetRead(sheet, "SummerSolarFactor");
+FallSolarFactor from SheetRead(sheet, "FallSolarFactor");
+
 DiscRate from SheetRead(sheet, "DiscRate");
 maxCO2 from SheetRead(sheet, "maxCO2");
 
@@ -118,11 +129,8 @@ FallOffGen to SheetWrite(sheetResults,"FallOffGen");
 
 //on to SheetWrite(sheetResults,"GenOnline"); //Produces a helpful table that more visually indicated when a generator is retired
 objective to SheetWrite(sheetResults,"TotalCost"); //outputs objective function value by year
-NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
-SO2_total to SheetWrite(sheetResults,"SO2_total");
+//NOx_total to SheetWrite(sheetResults,"NOx_total"); //outputs emissions by year
+//SO2_total to SheetWrite(sheetResults,"SO2_total");
 CO2_total to SheetWrite(sheetResults,"CO2_total");
-CH4_total to SheetWrite(sheetResults,"CH4_total");
-N2O_total to SheetWrite(sheetResults,"N2O_total");
-
-build_wind to SheetWrite(sheetResults,"BuildWind");
-build_solar to SheetWrite(sheetResults,"BuildSolar");
+//CH4_total to SheetWrite(sheetResults,"CH4_total");
+//N2O_total to SheetWrite(sheetResults,"N2O_total");
