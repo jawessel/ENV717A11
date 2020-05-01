@@ -95,7 +95,7 @@ float SpringSolarFactor = ...;
 float SummerSolarFactor = ...;
 float FallSolarFactor = ...;
 
-float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
+//float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
 float fridge_eff_cost = ...; //non-discounted annual cost of refrigerator energy efficiency (program is either implemented for every year or not at all)
 float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in refrigerator energy efficiency program (MW/year)
 float led_eff_cost = ...; //non-discounted annual cost of LED energy efficiency (program is either implemented for every year or not at all)
@@ -133,8 +133,15 @@ dvar float+ FallOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
 dvar float FallPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-//The "on" variable may need to be adjusted to mean whether a plant is active for a set of years
-dvar boolean on[u in Units, y in Years];
+//binary decision variables determining whether a plant is online during a certain year for a certain demand level
+dvar boolean onWinPk[u in Units, y in Years];
+dvar boolean onWinOffPk[u in Units, y in Years];
+dvar boolean onSprPk[u in Units, y in Years];
+dvar boolean onSprOffPk[u in Units, y in Years];
+dvar boolean onSumPk[u in Units, y in Years];
+dvar boolean onSumOffPk[u in Units, y in Years];
+dvar boolean onFallPk[u in Units, y in Years];
+dvar boolean onFallOffPk[u in Units, y in Years];
 
 dvar float objective [y in Years]; //objective function set as a decision variable
 dvar float NOx_total [y in Years]; //Emissions decision variables (only CO2 is constrained so far)
@@ -160,7 +167,7 @@ dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraint
 dvar int bb_ba [y in Years]; // ^ (battery)
 dvar int bn_na [y in Years]; // ^ (natural gas)
 
-dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
+//dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 dvar boolean fridge_eff_decision; //binary decision for whether or not to invest in refrigerator energy efficiency
 dvar boolean led_eff_decision; //binary decision for whether or not to invest in LED energy efficiency
 dvar boolean retrofit_decision [ConvUnits]; //binary decision for retrofitting existing coal and natural gas plants
@@ -354,14 +361,24 @@ subject to {
 	forall(y in Years)
 	{
     	forall(u in Units){
-    	    WinterPeakGen[u,y] <= WinterPeakMaxGen[u]*on[u,y]; //multiplied by binary variable to ensure it's switched on
-    	    WinterOffGen[u,y] <= OffMaxGen[u] *on[u,y];
-    	    SpringPeakGen[u,y] <= SpringPeakMaxGen[u] *on[u,y];
-    	    SpringOffGen[u,y] <= OffMaxGen[u] *on[u,y];
-    	    SummerPeakGen[u,y] <= SummerPeakMaxGen[u] *on[u,y];
-    	    SummerOffGen[u,y] <= OffMaxGen[u] *on[u,y];
-    	    FallPeakGen[u,y] <= FallPeakMaxGen[u] *on[u,y];
-    	    FallOffGen[u,y] <= OffMaxGen[u] *on[u,y];
+    	    WinterPeakGen[u,y] <= WinterPeakMaxGen[u]*onWinPk[u,y]; //multiplied by binary variable to ensure it's switched on
+    	    WinterOffGen[u,y] <= OffMaxGen[u] *onWinOffPk[u,y];
+    	    SpringPeakGen[u,y] <= SpringPeakMaxGen[u] *onSprPk[u,y];
+    	    SpringOffGen[u,y] <= OffMaxGen[u] *onSprOffPk[u,y];
+    	    SummerPeakGen[u,y] <= SummerPeakMaxGen[u] *onSumPk[u,y];
+    	    SummerOffGen[u,y] <= OffMaxGen[u] *onSumOffPk[u,y];
+    	    FallPeakGen[u,y] <= FallPeakMaxGen[u] *onFallPk[u,y];
+    	    FallOffGen[u,y] <= OffMaxGen[u] *onFallOffPk[u,y];
+    	    
+    	    //Logical constraints ensuring generators are switched off if they are not needed to generate power
+    	    (WinterPeakGen[u,y] == 0) => (onWinPk[u,y] == 0);
+    	    (WinterOffGen[u,y] == 0) => (onWinOffPk[u,y] == 0);
+    	    (SpringPeakGen[u,y] == 0) => (onSprPk[u,y] == 0);
+    	    (SpringOffGen[u,y] == 0) => (onSprOffPk[u,y] == 0);
+    	    (SummerPeakGen[u,y] == 0) => (onSumPk[u,y] == 0);
+    	    (SummerOffGen[u,y] == 0) => (onSumOffPk[u,y] == 0);
+    	    (FallPeakGen[u,y] == 0) => (onFallPk[u,y] == 0);
+    	    (FallOffGen[u,y] == 0) => (onFallOffPk[u,y] == 0);
        }    	    
     }
     
@@ -527,10 +544,10 @@ subject to {
 	  {
 		forall(u in Units)
 	    {
-	      WinterPeakGen[u,y] - WinterOffGen[u,y] <= RampRate[u] * on[u,y];
-	      SpringPeakGen[u,y] - SpringOffGen[u,y] <= RampRate[u] * on[u,y];
-	      SummerPeakGen[u,y] - SummerOffGen[u,y] <= RampRate[u] * on[u,y];
-	      FallPeakGen[u,y] - FallOffGen[u,y] <= RampRate[u] * on[u,y];
+	      WinterPeakGen[u,y] - WinterOffGen[u,y] <= RampRate[u] * onWinPk[u,y];
+	      SpringPeakGen[u,y] - SpringOffGen[u,y] <= RampRate[u] * onSprPk[u,y];
+	      SummerPeakGen[u,y] - SummerOffGen[u,y] <= RampRate[u] * onSumPk[u,y];
+	      FallPeakGen[u,y] - FallOffGen[u,y] <= RampRate[u] * onFallPk[u,y];
 	    };
 	  }
     
@@ -553,13 +570,13 @@ subject to {
 //Need to have 15% more generation capacity available than the peak peak demand 
 	forall(y in Years)
 	{
- 			sum(u in Units) WinterPeakMaxGen[u]*on[u,y] >= sum(b in Buses) WinterPPDemand[b][y]*1.15;
+ 			sum(u in Units) WinterPeakMaxGen[u]*onWinPk[u,y] >= sum(b in Buses) WinterPPDemand[b][y]*1.15;
  			
- 			sum(u in Units) SpringPeakMaxGen[u]*on[u,y] >= sum(b in Buses) SpringPPDemand[b][y]*1.15;
+ 			sum(u in Units) SpringPeakMaxGen[u]*onSprPk[u,y] >= sum(b in Buses) SpringPPDemand[b][y]*1.15;
  			
- 			sum(u in Units) SummerPeakMaxGen[u]*on[u,y] >= sum(b in Buses) SummerPPDemand[b][y]*1.15;
+ 			sum(u in Units) SummerPeakMaxGen[u]*onSumPk[u,y] >= sum(b in Buses) SummerPPDemand[b][y]*1.15;
  			
- 			sum(u in Units) FallPeakMaxGen[u]*on[u,y] >= sum(b in Buses) FallPPDemand[b][y]*1.15;
+ 			sum(u in Units) FallPeakMaxGen[u]*onFallPk[u,y] >= sum(b in Buses) FallPPDemand[b][y]*1.15;
 			
        }    	    
     

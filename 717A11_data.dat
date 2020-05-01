@@ -23,11 +23,10 @@ SummerOffDemand from SheetRead(sheet, "SummerDemandOff"); /*Demand (MW)*/
 FallPeakDemand from SheetRead(sheet, "FallDemandPeak"); /*Demand (MW)*/
 FallOffDemand from SheetRead(sheet, "FallDemandOff"); /*Demand (MW)*/
 
-WinterPPDemand from SheetRead(sheet, "WinterPPDemand"); /*peak winter demand (MW)*/
-SpringPPDemand from SheetRead(sheet, "SpringPPDemand"); /*peak winter demand (MW)*/
-SummerPPDemand from SheetRead(sheet, "SummerPPDemand"); /*peak winter demand (MW)*/
-FallPPDemand from SheetRead(sheet, "FallPPDemand"); /*peak winter demand (MW)*/
-
+WinterPPDemand from SheetRead(sheet, "WinterPPDemand"); /*peak peak winter demand (MW)*/
+SpringPPDemand from SheetRead(sheet, "SpringPPDemand"); /*peak peak spring demand (MW)*/
+SummerPPDemand from SheetRead(sheet, "SummerPPDemand"); /*peak peak summer demand (MW)*/
+FallPPDemand from SheetRead(sheet, "FallPPDemand"); /*peak peak fall demand (MW)*/
 
 WinterPeakHours from SheetRead(sheet, "WinterPeakHours"); 
 WinterOffHours from SheetRead(sheet, "WinterOffHours");
@@ -81,7 +80,7 @@ opex_ngcc from SheetRead(sheet, "OPEX_NGCC");
 ngcc_inc from SheetRead(sheet, "ngcc_inc");
 ngcc_cap_factor from SheetRead(sheet, "ngcc_cap_factor");
 
-EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
+//EV_subsidy_cost from SheetRead(sheet, "EV_subsidy_cost");
 fridge_eff_cost from SheetRead(sheet, "fridge_eff_cost");
 fridge_eff_benefit from SheetRead(sheet, "fridge_eff_benefit");
 led_eff_cost from SheetRead(sheet, "led_eff_cost");
