@@ -14,6 +14,7 @@ range Buses = 1..NumBuses;
 range Lines = 1..NumLines;
 range Units = 1..NumUnits;
 range Years = 1..NumYears;
+range ConvUnits = 1..20;
 
 //Demand (Load)
 float WinterPeakDemand [Buses][Years] = ...; //Demand (MW) for each bus
@@ -46,7 +47,8 @@ float LineCapacity[Lines]=...;
 float WinterPeakMaxGen [Units] = ...; //Unit Maximum Generation during peak hours (MW)
 float SpringPeakMaxGen [Units] = ...; 
 float SummerPeakMaxGen [Units] = ...; 
-float FallPeakMaxGen [Units] = ...; 
+float FallPeakMaxGen [Units] = ...;
+float ConvUnitCap [ConvUnits] = ...; //Nameplate Capacity of existing conventional units 
 float OffMaxGen [Units] = ...; //Unit Maximum Generation during off-peak hours (MW)
 float MinGen [Units] = ...; //Unit Minimum Generation (MW)
 float MarginalC[Units] = ...; //Unit Marginal Cost of Energy ($/MWh)
@@ -89,8 +91,11 @@ float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulti
 float led_eff_cost = ...; //non-discounted annual cost of LED energy efficiency (program is either implemented for every year or not at all)
 float led_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in LED energy efficiency program (MW/year)
 
-float retrofit_cost = ...; //capital cost of retrofitting an existing coal or natural gas plant to reduce emissions
-float retrofit_benefit = ...; //proportion of emissions that will be eliminated as a result of a retrofit
+float retrofit_cap_cost = ...; //capital cost (LCOE) of retrofitting an existing coal or natural gas plant to reduce emissions
+float retrofit_opex_cost = ...; //operational costs of retrofitting
+float retrofit_NOx_removal = ...; //proportion of NOx emissions that will be eliminated as a result of a retrofit
+float retrofit_SO2_removal = ...; //proportion of SO2 emissions that will be eliminated as a result of a retrofit
+float retrofit_CO2_removal = ...; //proportion of CO2 emissions that will be eliminated as a result of a retrofit
 
 //Optimization Parameters
 float DiscRate = ...; //Discount Rate for NPV calculations
@@ -140,14 +145,15 @@ dvar float new_ngcc_cap [y in Years];
 dvar boolean build_storage [y in Years];
 dvar int storage_additions [y in Years] in 0..10000;
 dvar float new_storage_cap [y in Years];
-dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints
-dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints
-dvar int bb_ba [y in Years];
-dvar int bn_na [y in Years];
+dvar int bs_sa [y in Years]; //logical int for linearizing MILP build constraints (solar)
+dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraints (wind)
+dvar int bb_ba [y in Years]; // ^ (battery)
+dvar int bn_na [y in Years]; // ^ (natural gas)
 
 dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 dvar boolean fridge_eff_decision; //binary decision for whether or not to invest in refrigerator energy efficiency
 dvar boolean led_eff_decision; //binary decision for whether or not to invest in LED energy efficiency
+dvar boolean retrofit_decision [ConvUnits]; //binary decision for retrofitting existing coal and natural gas plants
 
 //Objective Function
 minimize 
@@ -175,32 +181,59 @@ subject to {
 	    				+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage)
 							+ (fridge_eff_cost * fridge_eff_decision)
 	    						+ (led_eff_cost * led_eff_decision))
-	    							+ (EV_subsidy_cost*EV_subsidy_decision);
+	    							+ (sum(c in ConvUnits) WinterOffGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * WinterOffHours)
+							    	+ (sum(c in ConvUnits) SpringPeakGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * SpringPeakHours)
+							    	+ (sum(c in ConvUnits) SpringOffGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * SpringOffHours)
+							    	+ (sum(c in ConvUnits) SummerPeakGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * SummerPeakHours)
+							    	+ (sum(c in ConvUnits) SummerOffGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * SummerOffHours)
+							    	+ (sum(c in ConvUnits) FallPeakGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * FallPeakHours)
+							    	+ (sum(c in ConvUnits) FallOffGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * FallOffHours)
+							    	+ (sum(c in ConvUnits) ConvUnitCap[c] * retrofit_cap_cost);
     }	   
     
     forall(y in Years) //Emissions are summed up for output file
     { 		
 		//Need to be revised after seasons are completely added 
-		NOx_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+		NOx_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * NOx[u];
-		SO2_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * NOx[u] * (1 - retrofit_NOx_removal*retrofit_decision[u]))
+			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
+			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
+			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * NOx[44]);
+		SO2_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * SO2[u];
-		CO2_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * SO2[u] * (1 - retrofit_SO2_removal*retrofit_decision[u]))
+			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
+			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
+			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * SO2[44]);
+		CO2_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CO2[u];
-		CH4_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CO2[u] * (1 - retrofit_CO2_removal*retrofit_decision[u]))
+			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
+			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
+			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * CO2[44]);
+		CH4_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CH4[u];
-		N2O_total[y] == sum(u in Units) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CH4[u])
+			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
+			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
+			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * CH4[44]);
+		N2O_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * N2O[u];
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * N2O[u])
+			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
+			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
+			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * N2O[44]);
 	}		
   
 //Meet demand       
@@ -491,7 +524,6 @@ subject to {
 		CO2_emissions:
 	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
       }	  
-    
     
     //EmissionsGoals:
     	//CO2_total[26] <= 0; //uncomment for carbon-free electricity

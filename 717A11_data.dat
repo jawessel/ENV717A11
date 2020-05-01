@@ -42,6 +42,7 @@ LineCapacity from SheetRead(sheet, "LineCapacity"); //= [126 130 250];
 WinterPeakMaxGen from SheetRead(sheet, "WinterMaxGenPeak"); //= [140 285 90 85]; /*Unit maximum generation (MW)*/
 SpringPeakMaxGen from SheetRead(sheet, "SpringMaxGenPeak");
 SummerPeakMaxGen from SheetRead(sheet, "SummerMaxGenPeak");
+ConvUnitCap from SheetRead(sheet, "ConvUnitCap");
 FallPeakMaxGen from SheetRead(sheet, "FallMaxGenPeak");
 OffMaxGen from SheetRead(sheet, "MaxGenOff");
 MinGen from SheetRead(sheet, "MinGen"); //= [0 0 0 0]; /*Unit minimum generation (MW)*/
@@ -80,8 +81,11 @@ fridge_eff_benefit from SheetRead(sheet, "fridge_eff_benefit");
 led_eff_cost from SheetRead(sheet, "led_eff_cost");
 led_eff_benefit from SheetRead(sheet, "led_eff_benefit");
 
-retrofit_cost from SheetRead(sheet, "retrofit_cost");
-retrofit_benefit from SheetRead(sheet, "retrofit_benefit");
+retrofit_cap_cost from SheetRead(sheet, "retrofit_cap_cost");
+retrofit_opex_cost from SheetRead(sheet, "retrofit_opex_cost");
+retrofit_NOx_removal from SheetRead(sheet, "retrofit_NOx_removal");
+retrofit_SO2_removal from SheetRead(sheet, "retrofit_SO2_removal");
+retrofit_CO2_removal from SheetRead(sheet, "retrofit_CO2_removal");
 
 WinterSolarFactor from SheetRead(sheet, "WinterSolarFactor");
 SpringSolarFactor from SheetRead(sheet, "SpringSolarFactor");
