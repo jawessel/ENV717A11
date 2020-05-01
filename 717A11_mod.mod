@@ -571,13 +571,13 @@ subject to {
 //Need to have 15% more generation capacity available than the peak peak demand 
 	forall(y in Years)
 	{
- 			sum(u in Units) WinterPeakMaxGen[u]*onWinPk[u,y] >= (sum(b in Buses) (WinterPPDemand[b][y]*1.15 - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision));
+ 			sum(u in Units) WinterPeakMaxGen[u]*onWinPk[u,y] >= (sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
  			
- 			sum(u in Units) SpringPeakMaxGen[u]*onSprPk[u,y] >= (sum(b in Buses) (SpringPPDemand[b][y]*1.15 - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision));
+ 			sum(u in Units) SpringPeakMaxGen[u]*onSprPk[u,y] >= (sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
  			
- 			sum(u in Units) SummerPeakMaxGen[u]*onSumPk[u,y] >= (sum(b in Buses) (SummerPPDemand[b][y]*1.15 - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision));
+ 			sum(u in Units) SummerPeakMaxGen[u]*onSumPk[u,y] >= (sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
  			
- 			sum(u in Units) FallPeakMaxGen[u]*onFallPk[u,y] >= (sum(b in Buses) (FallPPDemand[b][y]*1.15 - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision));
+ 			sum(u in Units) FallPeakMaxGen[u]*onFallPk[u,y] >= (sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
 			
     }    	    
     
