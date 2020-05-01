@@ -558,7 +558,7 @@ subject to {
 	  {
 		CO2_emissions:
 	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
-	  	  (CO2_total[y] * 0.2727) + (CH4_total[y] * 0.74868) <= (CO2_total[y-1] * 0.2727) + (CH4_total[y-1] * 0.74868);
+	  	  (CO2_total[y] * 0.2727) + (CH4_total[y] * 0.74868) <= ((CO2_total[y-1] * 0.2727 ) + (CH4_total[y-1] * 0.74868) * 0.97978);
       }	  
     
     //EmissionsGoals:
