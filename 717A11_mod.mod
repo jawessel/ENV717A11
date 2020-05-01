@@ -97,6 +97,9 @@ float SummerSolarFactor = ...;
 float FallSolarFactor = ...;
 
 //float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
+int EV_subsidy_decision = ...; //binary decision for whether or not to instate 20% EV capital cost subsidy (predetermined)
+float vehicle_CO2_no_subsidy = ...; //Annual CO2 emissions (in lbs.) from transportation sector, without implementing EV subsidy
+float vehicle_CO2_subsidy = ...; //Annual CO2 emissions (in lbs.) from transportation sector with EV subsidy
 float fridge_eff_cost = ...; //non-discounted annual cost of refrigerator energy efficiency (program is either implemented for every year or not at all)
 float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in refrigerator energy efficiency program (MW/year)
 float led_eff_cost = ...; //non-discounted annual cost of LED energy efficiency (program is either implemented for every year or not at all)
@@ -113,24 +116,24 @@ float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
 
 //Decision Variables
-dvar float+ WinterPeakGen [u in Units, y in Years] in 0..WinterPeakMaxGen[u]; //Peak Generation for each Unit (MW)
+dvar float+ WinterPeakGen [u in Units, y in Years] in -10000..WinterPeakMaxGen[u]; //Peak Generation for each Unit (MW)
 //Need to change the minimum of PeakGen to allow batteries to charge
-dvar float+ WinterOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ WinterOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
 dvar float WinterPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float WinterOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-dvar float+ SpringPeakGen [u in Units, y in Years] in 0..SpringPeakMaxGen[u];
-dvar float+ SpringOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ SpringPeakGen [u in Units, y in Years] in -10000..SpringPeakMaxGen[u];
+dvar float+ SpringOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
 dvar float SpringPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float SpringOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)dvar float+ SummerPeakGen [u in Units, y in Years] in 0..OffMaxGen[u];
 
-dvar float+ SummerPeakGen [u in Units, y in Years] in 0..SummerPeakMaxGen[u];
-dvar float+ SummerOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ SummerPeakGen [u in Units, y in Years] in -10000..SummerPeakMaxGen[u];
+dvar float+ SummerOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
 dvar float SummerPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float SummerOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
-dvar float+ FallPeakGen [u in Units, y in Years] in 0..FallPeakMaxGen[u];
-dvar float+ FallOffGen [u in Units, y in Years] in 0..OffMaxGen[u];
+dvar float+ FallPeakGen [u in Units, y in Years] in -10000..FallPeakMaxGen[u];
+dvar float+ FallOffGen [u in Units, y in Years] in -10000..OffMaxGen[u];
 dvar float FallPeakFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 dvar float FallOffFlow[l in Lines, y in Years] in -LineCapacity[l]..LineCapacity[l]; //Flow on Each Transmission Line (MW)
 
@@ -168,7 +171,6 @@ dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraint
 dvar int bb_ba [y in Years]; // ^ (battery)
 dvar int bn_na [y in Years]; // ^ (natural gas)
 
-//dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 dvar boolean fridge_eff_decision; //binary decision for whether or not to invest in refrigerator energy efficiency
 dvar boolean led_eff_decision; //binary decision for whether or not to invest in LED energy efficiency
 dvar boolean retrofit_decision [ConvUnits]; //binary decision for retrofitting existing coal and natural gas plants
@@ -194,7 +196,7 @@ subject to {
 	    	+ (sum(u in Units) FallPeakGen[u][y] * (MarginalC[u] + opex_existing[u]) * FallPeakHours)
 	    	+ (sum(u in Units) FallOffGen[u][y] * (MarginalC[u] + opex_existing[u]) * FallOffHours)
 	    	+ (capex_solar[y] * bs_sa[y] * solar_inc) + (new_solar_cap[y] * opex_solar[y])
-	    		+ (capex_ngcc[y] * bn_na[y]) + (new_ngcc_cap[y] * opex_ngcc[y]) //may be able to nix opex and use MarginalC
+	    		+ (capex_ngcc[y] * bn_na[y] * ngcc_inc) + (new_ngcc_cap[y] * opex_ngcc[y]) //may be able to nix opex and use MarginalC
 	    			+ (capex_wind[y] * bw_wa[y] * wind_inc) + (new_wind_cap[y] * opex_wind[y])
 	    				+ (capex_storage[y] * bb_ba[y]) + (new_storage_cap[y] * opex_storage[y])
 							+ (fridge_eff_cost * fridge_eff_decision)
@@ -235,7 +237,7 @@ subject to {
 			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
 			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
 			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
-			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * CO2[44]);
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * CO2[44]) + (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) + (vehicle_CO2_subsidy*EV_subsidy_decision);
 		CH4_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
@@ -527,8 +529,6 @@ subject to {
     	  SummerOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  FallOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  
-    	  //constraint may need to be adjusted differently for seasonality
-    	  //This constraint may be in conflict with efficiency-related losses -LFI
     	  sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery
     	  sum(y in Years) SpringPeakGen[43][y] * bat_eff + SpringOffGen[43][y] <= 0;
     	  sum(y in Years) SummerPeakGen[43][y] * bat_eff + SummerOffGen[43][y] <= 0;
@@ -561,7 +561,7 @@ subject to {
       }	  
     
     //EmissionsGoals:
-    	//CO2_total[26] <= 0; //uncomment for carbon-free electricity
+    	//CO2_total[26] <= (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) + (vehicle_CO2_subsidy*EV_subsidy_decision); //uncomment for carbon-free electricity
     	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
     	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
