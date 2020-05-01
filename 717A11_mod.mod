@@ -588,15 +588,15 @@ subject to {
     forall(y in Years)
 	{
    	  	  //(var==1) => (Constraint)
-  		(onWinPk[43,y] == 1)  => (sum(u in Units) (WinterPeakMaxGen[u]*onWinPk[u,y]-WinterPeakGen[u][y]) >= sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
-  		(onSprPk[43,y] == 1)  => (sum(u in Units) (SpringPeakMaxGen[u]*onSprPk[u,y]-SpringPeakGen[u][y]) >= sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
-  		(onSumPk[43,y] == 1)  => (sum(u in Units) (SummerPeakMaxGen[u]*onSumPk[u,y]-SummerPeakGen[u][y]) >= sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
-  		(onFallPk[43,y] == 1)  => (sum(u in Units) (FallPeakMaxGen[u]*onFallPk[u,y]-FallPeakGen[u][y]) >= sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
+  		(onWinPk[43,y] == 1)  => (sum(u in Units) (WinterPeakMaxGen[u]*onWinPk[u,y] - WinterPeakGen[u][y] + new_storage_cap[y] + new_ngcc_cap[y] - WinterPeakGen[44,y]) >= sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
+  		(onSprPk[43,y] == 1)  => (sum(u in Units) (SpringPeakMaxGen[u]*onSprPk[u,y]-SpringPeakGen[u][y] + new_storage_cap[y] + new_ngcc_cap[y] - SpringPeakGen[44,y]) >= sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
+  		(onSumPk[43,y] == 1)  => (sum(u in Units) (SummerPeakMaxGen[u]*onSumPk[u,y]-SummerPeakGen[u][y] + new_storage_cap[y] + new_ngcc_cap[y] - SummerPeakGen[44,y]) >= sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
+  		(onFallPk[43,y] == 1)  => (sum(u in Units) (FallPeakMaxGen[u]*onFallPk[u,y]-FallPeakGen[u][y] + new_storage_cap[y] + new_ngcc_cap[y] - FallPeakGen[44,y]) >= sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.05);
   		
-  		(onWinPk[43,y] == 0)  => (sum(u in Units) (WinterPeakMaxGen[u]*onWinPk[u,y]-WinterPeakGen[u][y]) >= sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
-  		(onSprPk[43,y] == 0)  => (sum(u in Units) (SpringPeakMaxGen[u]*onSprPk[u,y]-SpringPeakGen[u][y]) >= sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
-  		(onSumPk[43,y] == 0)  => (sum(u in Units) (SummerPeakMaxGen[u]*onSumPk[u,y]-SummerPeakGen[u][y]) >= sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
-  		(onFallPk[43,y] == 0)  => (sum(u in Units) (FallPeakMaxGen[u]*onFallPk[u,y]-FallPeakGen[u][y]) >= sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
+  		(onWinPk[43,y] == 0)  => (sum(u in Units) (WinterPeakMaxGen[u]*onWinPk[u,y]-WinterPeakGen[u][y] + new_storage_cap[y] + new_ngcc_cap[y] - WinterPeakGen[44,y]) >= sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
+  		(onSprPk[43,y] == 0)  => (sum(u in Units) (SpringPeakMaxGen[u]*onSprPk[u,y]-SpringPeakGen[u][y] + new_storage_cap[y]+ new_ngcc_cap[y] - SpringPeakGen[44,y]) >= sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
+  		(onSumPk[43,y] == 0)  => (sum(u in Units) (SummerPeakMaxGen[u]*onSumPk[u,y]-SummerPeakGen[u][y] + new_storage_cap[y]+ new_ngcc_cap[y] - SummerPeakGen[44,y]) >= sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
+  		(onFallPk[43,y] == 0)  => (sum(u in Units) (FallPeakMaxGen[u]*onFallPk[u,y]-FallPeakGen[u][y] + new_storage_cap[y]+ new_ngcc_cap[y] - FallPeakGen[44,y]) >= sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*0.03);
 //if we have solar generation capacity in a given year		
 	}
 		
