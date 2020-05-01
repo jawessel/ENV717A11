@@ -52,6 +52,7 @@ FallPeakMaxGen from SheetRead(sheet, "FallMaxGenPeak");
 OffMaxGen from SheetRead(sheet, "MaxGenOff");
 MinGen from SheetRead(sheet, "MinGen"); //= [0 0 0 0]; /*Unit minimum generation (MW)*/
 MarginalC from SheetRead(sheet, "MarginalC"); //= [7.5 6 14 10]; /*unit marginal costs of energy ($/MWh)*/
+opex_existing from SheetRead(sheet, "OPEX_existing");
 
 NOx from SheetRead(sheet, "NOx_rate");
 SO2 from SheetRead(sheet, "SO2_rate");
