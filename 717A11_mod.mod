@@ -77,7 +77,7 @@ float solar_inc = ...; //Incremental amount of solar that can be built (MW)
 float wind_inc = ...; //Incremental amount of wind that can be built (MW)
 float solar_cap_factor = ...; //How much of the installed solar capacity will be generated at this hour in the year
 float wind_cap_factor = ...; //How much of the installed wind capacity will be generated at this hour in the year
-float capex_storage = ...; //Capital Cost of a storage project ($/MW)
+float capex_storage[Years] = ...; //Capital Cost of a storage project ($/MW)
 float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
 float bat_eff = ...; //battery round-trip efficiency
 float RampRate [Units] = ...; //Ramp rate for ramping constraints
@@ -196,7 +196,7 @@ subject to {
 	    	+ (capex_solar[y] * bs_sa[y] * solar_inc) + (new_solar_cap[y] * opex_solar)
 	    		+ (capex_ngcc[y] * bn_na[y]) + (new_ngcc_cap[y] * opex_ngcc) //may be able to nix opex and use MarginalC
 	    			+ (capex_wind[y] * bw_wa[y] * wind_inc) + (new_wind_cap[y] * opex_wind)
-	    				+ (capex_storage * bb_ba[y]) + (new_storage_cap[y] * opex_storage)
+	    				+ (capex_storage[y] * bb_ba[y]) + (new_storage_cap[y] * opex_storage)
 							+ (fridge_eff_cost * fridge_eff_decision)
 	    						+ (led_eff_cost * led_eff_decision))
 	    							+ (sum(c in ConvUnits) WinterOffGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * WinterOffHours)
