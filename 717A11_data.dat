@@ -137,3 +137,8 @@ build_solar to SheetWrite(sheetResults,"BuildSolar");
 build_wind to SheetWrite(sheetResults,"BuildWind");
 build_storage to SheetWrite(sheetResults,"BuildStorage");
 build_ngcc to SheetWrite(sheetResults,"BuildNGCC");
+
+new_wind_cap to SheetWrite(sheetResults,"new_wind_cap");
+new_solar_cap to SheetWrite(sheetResults,"new_solar_cap");
+new_storage_cap to SheetWrite(sheetResults,"new_storage_cap");
+new_ngcc_cap to SheetWrite(sheetResults,"new_ngcc_cap");
