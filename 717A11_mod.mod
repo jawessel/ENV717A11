@@ -517,10 +517,15 @@ subject to {
     	  (build_storage[y] == 0) => (storage_additions[y] == 0);
     	  (build_storage[y] == 1) => (storage_additions[y] >= 1);
     	  
-    	  WinterPeakGen[43][y] >= - new_storage_cap[y];
-    	  SpringPeakGen[43][y] >= - new_storage_cap[y];
-    	  SummerPeakGen[43][y] >= - new_storage_cap[y];
-    	  FallPeakGen[43][y] >= - new_storage_cap[y];
+    	  //WinterPeakGen[43][y] == 0;
+    	  //SpringPeakGen[43][y] == 0;
+    	  //SummerPeakGen[43][y] == 0;
+    	  //FallPeakGen[43][y] == 0;
+    	  
+    	  WinterPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
+    	  SpringPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
+    	  SummerPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
+    	  FallPeakGen[43][y] >= - new_storage_cap[y] * 0.1;
     	  
     	  WinterOffGen[43][y] <= new_storage_cap[y] * bat_eff;
     	  SpringOffGen[43][y] <= new_storage_cap[y] * bat_eff;
@@ -529,10 +534,10 @@ subject to {
     	  
     	  //constraint may need to be adjusted differently for seasonality
     	  //This constraint may be in conflict with efficiency-related losses -LFI
-    	  sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery
-    	  sum(y in Years) SpringPeakGen[43][y] * bat_eff + SpringOffGen[43][y] <= 0;
-    	  sum(y in Years) SummerPeakGen[43][y] * bat_eff + SummerOffGen[43][y] <= 0;
-    	  sum(y in Years) FallPeakGen[43][y] * bat_eff + FallOffGen[43][y] <= 0;
+    	  //sum(y in Years) WinterPeakGen[43][y] * bat_eff + WinterOffGen[43][y] <= 0; //no free energy from discharging an empty battery
+    	  //sum(y in Years) SpringPeakGen[43][y] * bat_eff + SpringOffGen[43][y] <= 0;
+    	  //sum(y in Years) SummerPeakGen[43][y] * bat_eff + SummerOffGen[43][y] <= 0;
+    	  //sum(y in Years) FallPeakGen[43][y] * bat_eff + FallOffGen[43][y] <= 0;
     	 
     	  storage_additions[y] >= 0;
     	  bb_ba[y] >= 0;
