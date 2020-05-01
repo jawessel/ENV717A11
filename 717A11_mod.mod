@@ -89,6 +89,9 @@ float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulti
 float led_eff_cost = ...; //non-discounted annual cost of LED energy efficiency (program is either implemented for every year or not at all)
 float led_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in LED energy efficiency program (MW/year)
 
+float retrofit_cost = ...; //capital cost of retrofitting an existing coal or natural gas plant to reduce emissions
+float retrofit_benefit = ...; //proportion of emissions that will be eliminated as a result of a retrofit
+
 //Optimization Parameters
 float DiscRate = ...; //Discount Rate for NPV calculations
 float maxCO2 = ...; //Maximum 2045 CO2 emissions
@@ -364,7 +367,7 @@ subject to {
     forall(y in Years)
 	  {   
     	MaxNGCCGen:
-    	//not currenly choosing to build NGCC - likely need to add emissions and ramping ability
+    	//not currently choosing to build NGCC - likely need to add emissions and ramping ability
     	  new_ngcc_cap[y] == sum(z in Years : z<=y - ngccBuildTime) bn_na[z] * ngcc_inc;
     	  (build_ngcc[y] == 1) => (bn_na[y] == ngcc_additions[y]);
     	  (build_ngcc[y] == 0) == (bn_na[y] == 0);
@@ -388,7 +391,6 @@ subject to {
 	  {   
     	MaxSolarGen:
     	   //constrains new solar generation to be less than the total installed capacity up to that point
-    	   //solar only needs to consider PeakGen, all OffMaxGen set to 0
     	  new_solar_cap[y] == sum(z in Years : z<=y - SolarBuildTime) bs_sa[z] * solar_inc;
     	  (build_solar[y] == 1) => (bs_sa[y] == solar_additions[y]);
     	  (build_solar[y] == 0) => (bs_sa[y] == 0);
@@ -396,10 +398,16 @@ subject to {
     	  (build_solar[y] == 1) => (solar_additions[y] >= 1);
     	  
     	  //Need to rework capacity factor for VERs
-    	  WinterPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * WinterSolarFactor;
-    	  SpringPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * SpringSolarFactor;
-    	  SummerPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * SummerSolarFactor;
-    	  FallPeakGen[41][y] == new_solar_cap[y] * solar_cap_factor * FallSolarFactor;
+    	  WinterPeakGen[41][y] == new_solar_cap[y] * WinterSolarFactor;
+    	  SpringPeakGen[41][y] == new_solar_cap[y] * SpringSolarFactor;
+    	  SummerPeakGen[41][y] == new_solar_cap[y] * SummerSolarFactor;
+    	  FallPeakGen[41][y] == new_solar_cap[y] * FallSolarFactor;
+    	  
+    	  //solar only needs to consider PeakGen, all OffMaxGen set to 0
+    	  //WinterOffGen[41][y] == new_solar_cap[y] * WinterSolarFactor * solar_cap_factor;
+    	  //SpringOffGen[41][y] == new_solar_cap[y] * SpringSolarFactor * solar_cap_factor;
+    	  //SummerOffGen[41][y] == new_solar_cap[y] * SummerSolarFactor * solar_cap_factor;
+    	  //FallOffGen[41][y] == new_solar_cap[y] * FallSolarFactor * solar_cap_factor;
     	  
     	  solar_additions[y] >= 0;
     	  bs_sa[y] >= 0;
