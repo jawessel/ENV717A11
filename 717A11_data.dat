@@ -133,3 +133,7 @@ CO2_total to SheetWrite(sheetResults,"CO2_total");
 CH4_total to SheetWrite(sheetResults,"CH4_total");
 N2O_total to SheetWrite(sheetResults,"N2O_total");
 
+build_solar to SheetWrite(sheetResults,"BuildSolar");
+build_wind to SheetWrite(sheetResults,"BuildWind");
+build_storage to SheetWrite(sheetResults,"BuildStorage");
+build_ngcc to SheetWrite(sheetResults,"BuildNGCC");
