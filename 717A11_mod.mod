@@ -97,6 +97,9 @@ float SummerSolarFactor = ...;
 float FallSolarFactor = ...;
 
 //float EV_subsidy_cost = ...; //Capital cost to subsidize 20% of EV costs
+int EV_subsidy_decision = ...; //binary decision for whether or not to instate 20% EV capital cost subsidy (predetermined)
+float vehicle_CO2_no_subsidy = ...; //Annual CO2 emissions (in lbs.) from transportation sector, without implementing EV subsidy
+float vehicle_CO2_subsidy = ...; //Annual CO2 emissions (in lbs.) from transportation sector with EV subsidy
 float fridge_eff_cost = ...; //non-discounted annual cost of refrigerator energy efficiency (program is either implemented for every year or not at all)
 float fridge_eff_benefit [Buses][Years] = ...; //annual demand reduction resulting from investment in refrigerator energy efficiency program (MW/year)
 float led_eff_cost = ...; //non-discounted annual cost of LED energy efficiency (program is either implemented for every year or not at all)
@@ -168,7 +171,6 @@ dvar int bw_wa [y in Years]; //logical int for linearizing MILP build constraint
 dvar int bb_ba [y in Years]; // ^ (battery)
 dvar int bn_na [y in Years]; // ^ (natural gas)
 
-//dvar boolean EV_subsidy_decision; //binary decision for whether or not to instate 20% EV capital cost subsidy
 dvar boolean fridge_eff_decision; //binary decision for whether or not to invest in refrigerator energy efficiency
 dvar boolean led_eff_decision; //binary decision for whether or not to invest in LED energy efficiency
 dvar boolean retrofit_decision [ConvUnits]; //binary decision for retrofitting existing coal and natural gas plants
@@ -235,7 +237,7 @@ subject to {
 			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
 			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
 			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
-			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * CO2[44]);
+			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * CO2[44]) + (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) + (vehicle_CO2_subsidy*EV_subsidy_decision);
 		CH4_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
@@ -559,7 +561,7 @@ subject to {
       }	  
     
     //EmissionsGoals:
-    	//CO2_total[26] <= 0; //uncomment for carbon-free electricity
+    	//CO2_total[26] <= (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) + (vehicle_CO2_subsidy*EV_subsidy_decision); //uncomment for carbon-free electricity
     	
     	//A10 prompt includes condition that GHG emissions from electricity not average above 600lbs/MWh over next 25 yrs
     	//600 >= sum(y in Years) sum(b in Buses) CO2_total[y] / (PeakDemand[b][y] * PeakHours + OffDemand[b][y] * OffHours);
