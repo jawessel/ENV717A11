@@ -70,15 +70,15 @@ float CH4 [Units] = ...; //CH4 Emissions by generator (lb/MWh)
 float N2O [Units] = ...; //N2O Emissions by generator (lb/MWh)
 
 float capex_solar[Years] = ...; //Capital Cost of a solar project ($/MW)
-float opex_solar = ...; //Annual O&M Cost of new solar ($/MW)
+float opex_solar[Years] = ...; //Annual O&M Cost of new solar ($/MW)
 float capex_wind[Years] = ...; //Capital Cost of a wind project ($/MW)
-float opex_wind = ...; //Annual O&M Cost of new wind ($/MW)
+float opex_wind[Years] = ...; //Annual O&M Cost of new wind ($/MW)
 float solar_inc = ...; //Incremental amount of solar that can be built (MW)
 float wind_inc = ...; //Incremental amount of wind that can be built (MW)
 float solar_cap_factor = ...; //How much of the installed solar capacity will be generated at this hour in the year
 float wind_cap_factor = ...; //How much of the installed wind capacity will be generated at this hour in the year
 float capex_storage[Years] = ...; //Capital Cost of a storage project ($/MW)
-float opex_storage = ...; //Annual O&M Cost of new storage ($/MW)
+float opex_storage[Years] = ...; //Annual O&M Cost of new storage ($/MW)
 float bat_eff = ...; //battery round-trip efficiency
 float RampRate [Units] = ...; //Ramp rate for ramping constraints
 int SolarBuildTime = ...;
@@ -86,7 +86,7 @@ int WindBuildTime = ...;
 
 int ngccBuildTime = ...;
 float capex_ngcc[Years] = ...; //Capital Cost of an NGCC project ($/MW)
-float opex_ngcc = ...; //Annual O&M Cost of new NGCC ($/MW) - may need to treat differently due to fuel costs
+float opex_ngcc[Years] = ...; //Annual O&M Cost of new NGCC ($/MW) - may need to treat differently due to fuel costs
 float ngcc_inc = ...; //Incremental amount of NGCC that can be built (MW)
 float ngcc_cap_factor = ...; //How much of the installed NGCC capacity will be generated at this hour in the year
 
@@ -193,10 +193,10 @@ subject to {
 	    	+ (sum(u in Units) SummerOffGen[u][y] * (MarginalC[u] + opex_existing[u]) * SummerOffHours)
 	    	+ (sum(u in Units) FallPeakGen[u][y] * (MarginalC[u] + opex_existing[u]) * FallPeakHours)
 	    	+ (sum(u in Units) FallOffGen[u][y] * (MarginalC[u] + opex_existing[u]) * FallOffHours)
-	    	+ (capex_solar[y] * bs_sa[y] * solar_inc) + (new_solar_cap[y] * opex_solar)
-	    		+ (capex_ngcc[y] * bn_na[y]) + (new_ngcc_cap[y] * opex_ngcc) //may be able to nix opex and use MarginalC
-	    			+ (capex_wind[y] * bw_wa[y] * wind_inc) + (new_wind_cap[y] * opex_wind)
-	    				+ (capex_storage[y] * bb_ba[y]) + (new_storage_cap[y] * opex_storage)
+	    	+ (capex_solar[y] * bs_sa[y] * solar_inc) + (new_solar_cap[y] * opex_solar[y])
+	    		+ (capex_ngcc[y] * bn_na[y]) + (new_ngcc_cap[y] * opex_ngcc[y]) //may be able to nix opex and use MarginalC
+	    			+ (capex_wind[y] * bw_wa[y] * wind_inc) + (new_wind_cap[y] * opex_wind[y])
+	    				+ (capex_storage[y] * bb_ba[y]) + (new_storage_cap[y] * opex_storage[y])
 							+ (fridge_eff_cost * fridge_eff_decision)
 	    						+ (led_eff_cost * led_eff_decision))
 	    							+ (sum(c in ConvUnits) WinterOffGen[c][y] * retrofit_opex_cost * retrofit_decision[c] * WinterOffHours)
@@ -571,13 +571,13 @@ subject to {
 //Need to have 15% more generation capacity available than the peak peak demand 
 	forall(y in Years)
 	{
- 			sum(u in Units: u <= 40) WinterPeakMaxGen[u] + new_solar_cap[y] + new_wind_cap[y] + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
+ 			sum(u in Units: u <= 40) WinterPeakMaxGen[u] + new_solar_cap[y] * WinterSolarFactor + new_wind_cap[y] * wind_cap_factor + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (WinterPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
  			
- 			sum(u in Units: u <= 40) SpringPeakMaxGen[u] + new_solar_cap[y] + new_wind_cap[y] + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
+ 			sum(u in Units: u <= 40) SpringPeakMaxGen[u] + new_solar_cap[y] * SpringSolarFactor + new_wind_cap[y] * wind_cap_factor + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (SpringPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
  			
- 			sum(u in Units: u <= 40) SummerPeakMaxGen[u] + new_solar_cap[y] + new_wind_cap[y] + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
+ 			sum(u in Units: u <= 40) SummerPeakMaxGen[u] + new_solar_cap[y] * SummerSolarFactor + new_wind_cap[y] * wind_cap_factor + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (SummerPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
  			
- 			sum(u in Units: u <= 40) FallPeakMaxGen[u] + new_solar_cap[y] + new_wind_cap[y] + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
+ 			sum(u in Units: u <= 40) FallPeakMaxGen[u] + new_solar_cap[y]  * FallSolarFactor + new_wind_cap[y] * wind_cap_factor + new_storage_cap[y] + new_ngcc_cap[y] >= (sum(b in Buses) (FallPPDemand[b][y] - fridge_eff_benefit[b][y] * fridge_eff_decision - led_eff_benefit[b][y] * led_eff_decision)*1.15);
 			
     }    	    
     
