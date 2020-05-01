@@ -197,7 +197,7 @@ subject to {
 		NOx_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * NOx[u] * (1 - retrofit_NOx_removal*retrofit_decision[u]))
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * NOx[u])
 			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
 			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
 			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
@@ -205,7 +205,7 @@ subject to {
 		SO2_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * SO2[u] * (1 - retrofit_SO2_removal*retrofit_decision[u]))
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * SO2[u])
 			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
 			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
 			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
@@ -213,7 +213,7 @@ subject to {
 		CO2_total[y] == (sum(u in ConvUnits) (WinterPeakGen[u][y] * WinterPeakHours + WinterOffGen[u][y] * WinterOffHours
 			+ SpringPeakGen[u][y] * SpringPeakHours + SpringOffGen[u][y] * SpringOffHours
 			+ SummerPeakGen[u][y] * SummerPeakHours + SummerOffGen[u][y] * SummerOffHours
-			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CO2[u] * (1 - retrofit_CO2_removal*retrofit_decision[u]))
+			+ FallPeakGen[u][y] * FallPeakHours + FallOffGen[u][y] * FallOffHours) * CO2[u])
 			+ ((WinterPeakGen[44][y] * WinterPeakHours + WinterOffGen[44][y] * WinterOffHours
 			+ SpringPeakGen[44][y] * SpringPeakHours + SpringOffGen[44][y] * SpringOffHours
 			+ SummerPeakGen[44][y] * SummerPeakHours + SummerOffGen[44][y] * SummerOffHours
@@ -236,6 +236,14 @@ subject to {
 			+ FallPeakGen[44][y] * FallPeakHours + FallOffGen[44][y] * FallOffHours) * N2O[44]);
 	}		
   
+  
+		forall(u in ConvUnits)
+		  {
+		    (retrofit_decision[u] == 1) => (NOx[u] == NOx[u]*(1-retrofit_NOx_removal));
+		    (retrofit_decision[u] == 1) => (SO2[u] == SO2[u]*(1-retrofit_SO2_removal));
+		    (retrofit_decision[u] == 1) => (CO2[u] == CO2[u]*(1-retrofit_CO2_removal));
+		  }
+		  
 //Meet demand       
    TotalPowerBalance:
     forall(y in Years) 
