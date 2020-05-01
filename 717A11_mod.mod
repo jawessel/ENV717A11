@@ -560,8 +560,14 @@ subject to {
 	  {
 		CO2_emissions:
 	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)
-	  	  (CO2_total[y] * 0.2727) + (CH4_total[y] * 0.74868) <= ((CO2_total[y-1] * 0.2727 * 0.97978) + (CH4_total[y-1] * 0.74868 * 0.97978)); //reduce carbon emissions by 60% by 2045
-      }	  
+	  	  
+	  	  
+	  	  //Carbon-free constraint, must run both of the next two lines
+	  	  //((CO2_total[y] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727) + (CH4_total[y] * 0.74868) <= (((CO2_total[y-1] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision)) * 0.2727 * 0.9) + (CH4_total[y-1] * 0.74868 * 0.9)); //reduce carbon emissions annually to get to zero by 2045
+	  	  
+      }
+      CarbonFree:
+      	CO2_total[26] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision) <= 0; //carbon-free goal (excluding transportation) 
     
     //EmissionsGoals:
     	//CO2_total[26] <= 0; //uncomment for carbon-free electricity
