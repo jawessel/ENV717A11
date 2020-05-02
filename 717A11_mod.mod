@@ -582,12 +582,17 @@ subject to {
     
 //Emissions
 
-//	forall(y in Years: y>1)
-//	  {
-//		CO2_emissions:
-//	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)  
-//    }
+	forall(y in {2,3,4,5,6,7,8,9,10,11})
+	  {
+		CO2_emissions_2030: //75% reduction through 2030
+	  	  CO2_total[y] <= CO2_total[y-1] * 0.87055; //ends in 2030 as 25% of the original amount (75% decrease)  
+   	  }
 
+	forall(y in Years: y>10)
+	  {
+		CO2_emissions_post_2030:
+	  	  CO2_total[y] <= CO2_total[y-1]; //CO2 emissions after 2030 must remain constant or decrease for the 75% reduction case  
+   	  }
 
       //CarbonFree:
 //      forall(y in Years)
@@ -598,11 +603,17 @@ subject to {
 //      	//CO2_total[26] - (vehicle_CO2_no_subsidy*(1-EV_subsidy_decision)) - (vehicle_CO2_subsidy*EV_subsidy_decision) <= 0; //carbon-free goal (excluding transportation) 
 
 //GHG Emissions Constraint    	 
-	forall(y in Years: y>1)
-	  {
-		GHG_emissions:
-	  	  (CO2_total[y]+CH4_total[y]*25+N2O_total[y]*298) <= (CO2_total[y-1]+CH4_total[y-1]*25+N2O_total[y-1]*298) * 0.9640119; //ends in the final year as 40% of the original amount (60% decrease)  	  
-      }	
+//	forall(y in Years: y>1)
+//	  {
+//		GHG_emissions:
+//	  	  (CO2_total[y]+CH4_total[y]*25+N2O_total[y]*298) <= (CO2_total[y-1]+CH4_total[y-1]*25+N2O_total[y-1]*298) * 0.9640119; //ends in the final year as 40% of the original amount (60% decrease)  	  
+//      }	
+
+//	forall(y in Years: y>1)
+//	  {
+//		CO2_emissions: //75% reduction through 2045, no longer needed
+//	  	  CO2_total[y] <= CO2_total[y-1] * 0.9460576; //ends in the final year as 25% of the original amount (75% decrease)  
+//    }
 
 //Reserves 
 //Need to have 15% more generation capacity available than the peak peak demand 
