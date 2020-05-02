@@ -12,6 +12,14 @@
 		</config>
 		<config default="false" name="Business as Usual" category="opl">
 		</config>
+		<config default="false" name="CarbonFree" category="opl">
+			<ref name="717A11_mod_cf.mod" type="model">
+			</ref>
+			<ref name="717A11_data.dat" type="data">
+			</ref>
+			<ref name="717A11_oplsettings.ops" type="setting">
+			</ref>
+		</config>
 	</configs>
 	
 </project>

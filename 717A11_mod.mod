@@ -384,7 +384,7 @@ subject to {
        }    	    
     }
     
-    //Udated to prevent all but storage from going negative
+    //Updated to prevent all but storage from going negative
     forall(y in Years)
     {    
     	forall(u in 1..42)
